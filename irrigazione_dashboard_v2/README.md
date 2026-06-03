@@ -23,7 +23,7 @@ Debug e log
 - L'integrazione `e-dry` scrive inoltre i suoi debug in `config/custom_components/e-dry_irrigation/e_dry_debug.log`.
 
 Note
-- Versione corrente: `10.0.6`.
+- Versione corrente: `10.0.7`.
 
 Meteo
 - La dashboard legge i dati da e-SunMind tramite `e_sunmind_api_url`.
@@ -44,6 +44,7 @@ Preset zone
 - Puoi creare preset custom con nome, moltiplicatore SmartCalc e flag vento.
 - La dashboard salva tutto nel component e-Dry tramite `e_dry.update_zone` e `e_dry.update_zone_profiles`.
 - Persistenza: preset custom e assegnazioni zona sono nelle opzioni del config entry Home Assistant, quindi restano dopo restart add-on e Home Assistant.
+- Il popup admin usa scroll interno, cosi puoi raggiungere tutti i campi e i pulsanti senza far scorrere la pagina principale.
 
 Se vuoi che prepari un pacchetto release pronto per essere distribuito (zip con changelog e README), dimmelo.
 

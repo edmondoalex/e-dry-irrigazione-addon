@@ -1,3 +1,7 @@
+## 10.0.7
+- Corretto popup admin `Tarature meteo`: ora ha scroll interno e blocca lo scroll della pagina sottostante.
+- Migliorata usabilita su viewport piccoli per raggiungere pulsanti e campi in fondo al popup.
+
 ## 10.0.6
 - Aggiunta sezione admin `Preset zone` dentro `Tarature meteo`.
 - Aggiunta API protetta `GET/POST /api/irrigazione/zone_profiles` per leggere preset, assegnarli alle zone e salvare preset custom.

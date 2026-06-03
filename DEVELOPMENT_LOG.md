@@ -13,3 +13,4 @@
 - Aggiunta gestione tarature meteo da dashboard: endpoint `/api/meteo/weather_settings`, popup UI e salvataggio tramite servizio component `e_dry.update_weather_settings`; bump add-on a `10.0.4`.
 - Protetta la sezione tarature meteo con `admin_settings_password`, rimossa modifica entita fallback dalla dashboard cliente; bump add-on a `10.0.5`.
 - Bump add-on a `10.0.6`: aggiunta gestione admin preset zona e preset custom persistenti tramite `/api/irrigazione/zone_profiles` e servizi component `e_dry.update_zone`/`e_dry.update_zone_profiles`.
+- Bump add-on a `10.0.7`: corretto popup admin con scroll interno e blocco scroll pagina sottostante.

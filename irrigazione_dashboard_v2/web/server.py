@@ -19,7 +19,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.0.6"
+VERSION = "10.0.7"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -2185,6 +2185,7 @@ if __name__ == '__main__':
         port = 1977
     print(f"[Irrigazione] Flask listen port={port} (INGRESS_PORT={os.environ.get('INGRESS_PORT')}, PORT={os.environ.get('PORT')})")
     app.run(host='0.0.0.0', port=port)
+
 
 
 

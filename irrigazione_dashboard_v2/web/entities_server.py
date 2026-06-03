@@ -16,7 +16,7 @@ from flask import Flask, request, jsonify, send_file
 import requests
 
 app = Flask(__name__)
-VERSION = "10.0.6"
+VERSION = "10.0.7"
 HERE = Path(__file__).resolve().parent
 INDEX_HTML = HERE / "entities_index.html"
 
@@ -729,4 +729,5 @@ def api_options():
 if __name__ == '__main__':
     port = int(os.environ.get('ENTITIES_PORT', os.environ.get('PORT', 1978)))
     app.run(host='0.0.0.0', port=port)
+
 
