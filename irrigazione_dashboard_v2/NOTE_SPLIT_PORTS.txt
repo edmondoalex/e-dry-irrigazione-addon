@@ -1,0 +1,4 @@
+NOTE
+- Porta 1977: Dashboard (index.html) servita da web/server.py
+- Porta 1978: Debug entità (entities_index.html) servita da web/entities_server.py
+- run.sh avvia entrambi i server.

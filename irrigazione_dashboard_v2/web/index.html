@@ -1,0 +1,1874 @@
+﻿?<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>e-Dry Irrigazione</title>
+  <style>
+    :root{
+      --bg1:#0b3d1f; --bg2:#0f6b2e; --bg3:#1aa34a;
+      --card:#0c2f18cc; --card2:#0d3a1de6;
+      --txt:#eafff0; --muted:#bdeccc;
+      --accent:#7CFF9A; --warn:#ffd27c; --danger:#ff6b6b;
+      --shadow:0 12px 30px rgba(0,0,0,.25); --radius:18px;
+    
+      --grass-opacity:.28;
+      --grass-pattern:url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'180'%20height%3D'100'%20viewBox%3D'0%200%20180%20100'%3E%0A%20%20%3Crect%20width%3D'180'%20height%3D'100'%20fill%3D'none'%2F%3E%0A%20%20%3Cg%20fill%3D'none'%20stroke%3D'%237CFF9A'%20stroke-opacity%3D'.22'%20stroke-width%3D'2'%20stroke-linecap%3D'round'%3E%0A%20%20%20%20%3Cpath%20d%3D'M6%20100%20C12%2074%2010%2048%208%2010'%2F%3E%0A%20%20%20%20%3Cpath%20d%3D'M18%20100%20C26%2072%2022%2052%2020%2014'%2F%3E%0A%20%20%20%20%3Cpath%20d%3D'M30%20100%20C40%2074%2036%2056%2034%2018'%2F%3E%0A%20%20%20%20%3Cpath%20d%3D'M44%20100%20C54%2070%2050%2046%2048%208'%2F%3E%0A%20%20%20%20%3Cpath%20d%3D'M58%20100%20C68%2072%2064%2054%2062%2016'%2F%3E%0A%20%20%20%20%3Cpath%20d%3D'M72%20100%20C82%2070%2078%2044%2076%206'%2F%3E%0A%20%20%20%20%3Cpath%20d%3D'M90%20100%20C98%2072%2094%2054%2092%2016'%2F%3E%0A%20%20%20%20%3Cpath%20d%3D'M104%20100%20C114%2074%20110%2056%20108%2018'%2F%3E%0A%20%20%20%20%3Cpath%20d%3D'M118%20100%20C128%2070%20124%2046%20122%208'%2F%3E%0A%20%20%20%20%3Cpath%20d%3D'M132%20100%20C142%2072%20138%2054%20136%2016'%2F%3E%0A%20%20%20%20%3Cpath%20d%3D'M146%20100%20C156%2070%20152%2044%20150%206'%2F%3E%0A%20%20%20%20%3Cpath%20d%3D'M166%20100%20C172%2076%20170%2058%20168%2020'%2F%3E%0A%20%20%3C%2Fg%3E%0A%20%20%3Cg%20fill%3D'none'%20stroke%3D'%23000000'%20stroke-opacity%3D'.10'%20stroke-width%3D'1'%20stroke-linecap%3D'round'%3E%0A%20%20%20%20%3Cpath%20d%3D'M12%20100%20C16%2082%2014%2066%2013%2044'%2F%3E%0A%20%20%20%20%3Cpath%20d%3D'M52%20100%20C56%2082%2054%2062%2053%2038'%2F%3E%0A%20%20%20%20%3Cpath%20d%3D'M94%20100%20C98%2082%2096%2064%2095%2042'%2F%3E%0A%20%20%20%20%3Cpath%20d%3D'M138%20100%20C142%2082%20140%2062%20139%2038'%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E");
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; color:var(--txt);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      min-height:100vh;
+      background:
+        linear-gradient(160deg, rgba(4,60,30,.68), rgba(6,95,45,.55)),
+        url("sfondo.png");
+      background-size:cover;
+      background-position:center;
+      background-attachment:fixed;
+      overflow-x:hidden;
+    }
+    .noise{position:fixed;inset:0;pointer-events:none;mix-blend-mode:overlay;opacity:.9;filter:blur(.3px);
+      background-image:
+        radial-gradient(circle at 10% 30%, rgba(255,255,255,.06), transparent 30%),
+        radial-gradient(circle at 70% 60%, rgba(0,0,0,.10), transparent 35%);}
+    
+    /* Erbetta rimossa: usiamo sfondo personalizzato */
+    body::after{
+      display:none;
+    }
+    header{
+      padding:22px 18px 10px;
+      width:100%; max-width:none; margin:0;
+      display:flex; gap:14px; align-items:flex-end; justify-content:space-between; flex-wrap:wrap;
+      background: linear-gradient(180deg, rgba(0,0,0,.04), transparent);
+      box-shadow: inset 0 -1px 0 rgba(255,255,255,.02);
+    }
+    .title{display:flex;flex-direction:column;gap:6px}
+    .title h1{margin:0;font-size:clamp(22px,2.4vw,34px);letter-spacing:.3px}
+    .sub{color:var(--muted);font-size:13px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .pill{
+      display:inline-flex;gap:8px;align-items:center;
+      padding:6px 10px;border-radius:999px;
+      background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.12);
+      backdrop-filter:blur(6px);
+    }
+    .dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.25);
+      box-shadow:0 0 0 3px rgba(124,255,154,.16);}
+    .dot.on{background:var(--accent);box-shadow:0 0 0 3px rgba(124,255,154,.25),0 0 18px rgba(124,255,154,.5);}
+    .dot.off{background:rgba(255,255,255,.25);}
+    .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    button{
+      appearance:none;border:0;border-radius:14px;padding:10px 14px;font-weight:600;
+      color:var(--txt);cursor:pointer;background:rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 18px rgba(0,0,0,.16);
+      transition:transform .08s ease,background .2s ease,border-color .2s ease;
+    }
+    button:hover{background:rgba(0,0,0,.28);border-color:rgba(255,255,255,.22)}
+    button:active{transform:translateY(1px)}
+    button.primary{background:linear-gradient(135deg, rgba(124,255,154,.28), rgba(124,255,154,.10));border-color:rgba(124,255,154,.35);}
+    button.danger{background:linear-gradient(135deg, rgba(255,107,107,.30), rgba(255,107,107,.12));border-color:rgba(255,107,107,.35);}
+    .menu-dropdown{position:relative;display:flex}
+    .menu-toggle{font-size:18px;padding:10px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.22);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:48px}
+    .menu-content{display:none;position:absolute;right:0;top:100%;margin-top:10px;background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid rgba(255,255,255,.14);box-shadow:0 15px 30px rgba(0,0,0,.35);border-radius:14px;padding:12px;flex-direction:column;gap:8px;min-width:160px;z-index:10}
+    .menu-dropdown.open .menu-content{display:flex}
+    .menu-content button{width:100%;justify-content:flex-start}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    input[type="number"]{
+      width:140px;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.20);color:var(--txt);outline:none;
+    }
+
+    main{
+      max-width:1100px;margin:0 auto;padding:10px 18px 30px;
+      display:grid;grid-template-columns:1.2fr .8fr;gap:14px;
+    }
+    @media (max-width:960px){main{grid-template-columns:1fr}}
+
+    .card{
+      background:linear-gradient(180deg,var(--card),var(--card2));
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    /* Themed accents for primary dashboard areas to make the layout "super wowo" */
+    .card.weather-card{
+      /* stessa base .card: solo centratura/sizing */
+      max-width:1100px; width:calc(100% - 36px); margin:12px auto;
+    }
+    /* Weather card layout */
+    .weather-grid{display:flex;gap:14px;align-items:center}
+    .weather-left{flex:0 0 120px;display:flex;align-items:center;justify-content:center}
+    .weather-icon-large{font-size:56px;line-height:1}
+    .weather-right{flex:1;display:flex;flex-direction:column;gap:8px}
+    .weather-right .details{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+    .weather-metric{min-width:120px}
+    .weather-bar{height:10px;background:rgba(0,0,0,.12);border-radius:999px;overflow:hidden}
+    .weather-bar > div{height:100%;width:0;background:linear-gradient(90deg,#7CFF9A,#4FD27A)}
+    /* header-specific placement removed: weather card is centered above main */
+    #weatherIcon{ font-size:20px; margin-right:8px; display:inline-block }
+    /* SVG icon styling */
+    .icon-svg{ width:20px; height:20px; display:inline-block; fill:currentColor }
+    .icon-svg.large{ width:56px; height:56px }
+    .icon-svg g, .icon-svg path, .icon-svg line { stroke: currentColor; stroke: none }
+    .card.weather-card .hd h2{ color: #ff6b6b }
+    .zones .zone{
+      border-color: rgba(60,180,75,.22);
+      background: linear-gradient(180deg, rgba(60,180,75,.04), rgba(0,0,0,.12));
+    }
+
+    .card.programs{ /* aside */ }
+    .card.programs .hd h2,
+    .card .hd h2{
+      color: #e4ffd4;
+    }
+    /* stronger visual for active zone */
+    .zone.on{ box-shadow: 0 10px 30px rgba(60,180,75,.12); transform: translateY(-2px); transition:transform .12s ease, box-shadow .12s ease }
+    button.icon{display:inline-flex;gap:8px;align-items:center}
+    button.icon{ transition: transform .08s ease, box-shadow .12s ease }
+    button.icon:hover{ transform:translateY(-2px); box-shadow:0 8px 18px rgba(0,0,0,.18) }
+    .dot.on{ animation: pulse 2s infinite; box-shadow:0 0 0 6px rgba(124,255,154,.06), 0 0 18px rgba(124,255,154,.12) }
+    @keyframes pulse{ 0%{ transform:scale(1); opacity:1 } 50%{ transform:scale(1.06); opacity:.9 } 100%{ transform:scale(1); opacity:1 } }
+    .card{ transition: transform .12s ease, box-shadow .12s ease }
+    .card .hd h2{display:flex;align-items:center;gap:8px}
+    .card .hd{
+      padding:14px 14px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+      border-bottom:1px solid rgba(255,255,255,.12);
+      background:linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,.08));
+      box-shadow: inset 0 -1px 0 rgba(255,255,255,.2);
+    }
+    .card .hd h2{margin:0;font-size:16px;letter-spacing:.2px}
+    .card .bd{padding:14px}
+    .hint{color:var(--muted);font-size:12px;margin-top:10px;line-height:1.3rem}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace}
+
+    .zones{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    @media (max-width:640px){.zones{grid-template-columns:1fr}}
+
+    /* Mobile responsiveness tweaks */
+    @media (max-width:640px) {
+      header{padding:12px 10px}
+      .title h1{font-size:18px}
+      .actions{gap:8px}
+      .actions input[type=number]{width:64px}
+      .actions input[type=search]{min-width:80px}
+      .card.weather-card{ width:calc(100% - 20px); margin:10px auto }
+      .weather-grid{flex-direction:column;align-items:center}
+      .weather-left{flex:0 0 auto;margin-bottom:8px}
+      .weather-icon-large{font-size:44px}
+      .weather-right{width:100%;align-items:center}
+      .weather-right .details{justify-content:center}
+      .weather-metric{min-width:70px}
+      .weather-bar{height:8px}
+      .card .bd{padding:10px}
+      main{padding:8px 12px}
+      .card .hd{padding:10px}
+      .card .bd{padding:10px}
+      .zones{gap:10px}
+      .btns button{padding:8px 10px}
+      .pill{padding:6px 8px}
+      aside.card.programs{margin-top:10px}
+    }
+
+    /* Slight adjustments for small tablets */
+    @media (max-width:960px) and (min-width:641px){
+      .card.weather-card{ width:calc(100% - 28px); margin:12px auto }
+      .weather-icon-large{font-size:48px}
+    }
+
+    .zone{
+      position:relative;border-radius:18px;border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.18);overflow:hidden;padding:12px;min-height:150px;
+    }
+    .zone.on{
+      border-color:rgba(124,255,154,.35);
+      background:radial-gradient(500px 180px at 30% 20%, rgba(124,255,154,.18), transparent 60%),
+                 rgba(0,0,0,.18);
+    }
+    .top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .name{display:flex;flex-direction:column;gap:4px}
+    .name b{font-size:15px}
+    .name small{color:var(--muted);font-size:12px}
+    .mini{
+      display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.20);white-space:nowrap;font-size:12px;color:var(--muted);
+    }
+    .mini .dot{width:8px;height:8px}
+    .btns{display:flex;gap:10px;margin-top:10px}
+    .btns button{padding:9px 12px;border-radius:14px;font-size:13px;flex:1}
+
+     /* Rendiamo sicuro il click sull'intero pulsante: elementi grafici interni non
+       devono intercettare gli eventi pointer (es. icone o decorazioni sovrapposte) */
+     .btns button * { pointer-events: none; }
+     /* Se ci sono decorazioni assolute (sprinkler) non devono bloccare il click */
+     .sprinkler, .sprinkler * { pointer-events: none; }
+
+    .bar{
+      margin-top:10px;
+      height:10px;border-radius:999px;
+      background:rgba(255,255,255,.10);
+      overflow:hidden;border:1px solid rgba(255,255,255,.10);
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background:linear-gradient(90deg, rgba(124,255,154,.9), rgba(124,255,154,.35));
+      transition:width .3s ease;
+    }
+
+    /* sprinkler (stilizzazione) */
+    .sprinkler{position:absolute;left:12px;bottom:10px;width:120px;height:70px;opacity:.95;transform:translateZ(0)}
+    .zone .ctrl{position:relative;z-index:3;display:flex;align-items:center;gap:8px;margin-top:10px}
+    .zone .zone-dur-range{flex:1}
+    .zone .zone-dur-num{width:64px;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);text-align:center}
+    .bar{position:relative}
+    /* overlay slider centered vertically over the progress bar */
+    .bar-range{position:absolute;left:0;top:50%;width:100%;height:34px;transform:translateY(-50%);opacity:1;cursor:pointer;background:transparent;pointer-events:auto}
+    input[type=range].bar-range{ -webkit-appearance:none; appearance:none; background:transparent; height:100% }
+    input[type=range].bar-range:focus{ outline:none }
+    input[type=range].bar-range::-webkit-slider-runnable-track{ height:6px; background:transparent; border-radius:6px; }
+    input[type=range].bar-range::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:18px;height:18px;border-radius:50%;background:var(--accent);border:2px solid rgba(255,255,255,.95); box-shadow:0 3px 10px rgba(0,0,0,.35); transform:translateY(-50%); position:relative; top:50%; }
+    input[type=range].bar-range::-moz-range-track{ height:6px; background:transparent; border-radius:6px; }
+    input[type=range].bar-range::-moz-range-thumb{ width:18px;height:18px;border-radius:50%;background:var(--accent);border:2px solid rgba(255,255,255,.95); box-shadow:0 3px 10px rgba(0,0,0,.35); transform:translateY(-50%); }
+    input[type=range].bar-range::-ms-track{ background:transparent; height:6px }
+    input[type=range].bar-range::-ms-thumb{ width:18px;height:18px;border-radius:50%;background:var(--accent);border:2px solid rgba(255,255,255,.95) }
+    .head{position:absolute;left:22px;bottom:10px;width:36px;height:20px;border-radius:10px 10px 8px 8px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.20);box-shadow:0 8px 18px rgba(0,0,0,.18)}
+    .neck{position:absolute;left:35px;bottom:3px;width:10px;height:14px;border-radius:8px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.18)}
+    .base{position:absolute;left:16px;bottom:0;width:56px;height:10px;border-radius:10px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.12)}
+    .spray{position:absolute;left:40px;bottom:22px;width:110px;height:70px;transform-origin:0% 100%;opacity:0;filter:drop-shadow(0 0 10px rgba(124,255,154,.20))}
+    .arc{
+      position:absolute;left:0;bottom:0;width:110px;height:70px;
+      background:radial-gradient(closest-side at 10% 90%, rgba(124,255,154,.45), transparent 65%),
+                 radial-gradient(closest-side at 55% 40%, rgba(255,255,255,.25), transparent 60%),
+                 radial-gradient(closest-side at 80% 70%, rgba(124,255,154,.30), transparent 60%);
+      mask-image: radial-gradient(80px 55px at 0% 100%, black 55%, transparent 70%);
+      -webkit-mask-image: radial-gradient(80px 55px at 0% 100%, black 55%, transparent 70%);
+      opacity:.9;
+    }
+    .droplets{position:absolute;inset:0;overflow:hidden;opacity:0}
+    .drop{position:absolute;width:6px;height:10px;border-radius:50%;background:rgba(255,255,255,.38);filter:blur(.2px);transform:translateZ(0);opacity:0}
+    .zone.on .spray{opacity:1;animation:sweep 1.8s ease-in-out infinite}
+    .zone.on .droplets{opacity:1}
+    .zone.on .drop{opacity:.85;animation:fall 1.2s linear infinite}
+    @keyframes sweep{0%{transform:rotate(-18deg) scale(1)}50%{transform:rotate(18deg) scale(1.02)}100%{transform:rotate(-18deg) scale(1)}}
+    @keyframes fall{0%{transform:translate(0,-10px);opacity:0}10%{opacity:.8}100%{transform:translate(140px, 80px);opacity:0}}
+
+    .statgrid{display:grid;grid-template-columns:1fr;gap:10px}
+    .stat{padding:12px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.18)}
+    .stat b{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    .stat .v{font-size:14px;font-weight:700;white-space:pre-wrap;word-break:break-word}
+
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .toggle{
+      display:flex;gap:10px;align-items:center;
+      padding:10px 12px;border-radius:16px;border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.18);
+    }
+    .toggle input{transform:scale(1.2)}
+    .prog{
+      border-radius:16px;border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.18);padding:12px;
+      display:flex;flex-direction:column;gap:8px;
+    }
+    .prog .row{justify-content:space-between}
+    .small{font-size:12px;color:var(--muted)}
+    .toast{
+      position:fixed;left:50%;bottom:16px;transform:translateX(-50%);
+      background:rgba(0,0,0,.62);border:1px solid rgba(255,255,255,.18);color:var(--txt);
+      padding:10px 12px;border-radius:14px;backdrop-filter:blur(8px);
+      box-shadow:var(--shadow);opacity:0;pointer-events:none;
+      transition:opacity .2s ease, transform .2s ease;
+      max-width:92vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+  </style>
+  <style>
+    /* Compact mode: tighter cards, hide decorative sprinkler */
+    body.compact .zone{ padding:8px; border-radius:10px; min-height:88px }
+    body.compact .zone .name b{ font-size:13px }
+    body.compact .zone .mini{ padding:4px 8px }
+    body.compact .zone .btns button{ padding:8px 10px; font-size:13px }
+    body.compact .sprinkler{ display:none }
+
+  </style>
+    <style>
+      /* Small button used for inline edit controls */
+      .small-btn{padding:6px 6px;border-radius:8px;font-size:13px;min-width:44px}
+      .small-btn.primary{background:linear-gradient(135deg, rgba(124,255,154,.28), rgba(124,255,154,.10));border-color:rgba(124,255,154,.35)}
+      .small-btn.cancel{background:transparent;border:1px solid rgba(255,255,255,.08);}
+      .inline-edit-wrap{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px;max-width:100%}
+      .inline-edit-wrap input[type=text]{padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.14);color:var(--txt);min-width:80px;max-width:160px}
+    </style>
+</head>
+<body>
+  <div class="noise"></div>
+  <!-- SVG sprite: stylistic weather icons used in the card (hidden) -->
+  <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none">
+    <symbol id="icon-sun" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="4" />
+      <g stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="1" x2="12" y2="3" />
+        <line x1="12" y1="21" x2="12" y2="23" />
+        <line x1="4.2" y1="4.2" x2="5.6" y2="5.6" />
+        <line x1="18.4" y1="18.4" x2="19.8" y2="19.8" />
+        <line x1="1" y1="12" x2="3" y2="12" />
+        <line x1="21" y1="12" x2="23" y2="12" />
+        <line x1="4.2" y1="19.8" x2="5.6" y2="18.4" />
+        <line x1="18.4" y1="5.6" x2="19.8" y2="4.2" />
+      </g>
+    </symbol>
+    <symbol id="icon-cloud" viewBox="0 0 24 24">
+      <path d="M20 17.58A4.5 4.5 0 0 0 16.5 13H15a5 5 0 0 0-9.9.9A3.5 3.5 0 0 0 6.5 20H19a1 1 0 0 0 1-1z" />
+    </symbol>
+    <symbol id="icon-partly" viewBox="0 0 24 24">
+      <circle cx="9" cy="9" r="3.2" fill="currentColor" opacity="0.8"/>
+      <path d="M4 9h1.5M12.5 9H14M9 4v1.5M9 12.5V14M6.1 6.1l1.1 1.1M10.9 6.1l-1.1 1.1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+      <path d="M20 17.58A4.5 4.5 0 0 0 16.5 13H15a5 5 0 0 0-4.9 4.4 3.5 3.5 0 0 0 1.4 2.6H19a1 1 0 0 0 1-1z" />
+    </symbol>
+    <symbol id="icon-rain" viewBox="0 0 24 24">
+      <path d="M20 17.58A4.5 4.5 0 0 0 16.5 13H15a5 5 0 0 0-9.9.9A3.5 3.5 0 0 0 6.5 20H19a1 1 0 0 0 1-1z" />
+      <g stroke-linecap="round" stroke-width="1.6">
+        <line x1="8" y1="22" x2="8" y2="18" />
+        <line x1="12" y1="22" x2="12" y2="18" />
+        <line x1="16" y1="22" x2="16" y2="18" />
+      </g>
+    </symbol>
+    <symbol id="icon-storm" viewBox="0 0 24 24">
+      <path d="M20 17.58A4.5 4.5 0 0 0 16.5 13H15a5 5 0 0 0-9.9.9A3.5 3.5 0 0 0 6.5 20H19a1 1 0 0 0 1-1z" />
+      <path d="M13 13l-3 5h4l-1 4" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" />
+    </symbol>
+    <symbol id="icon-snow" viewBox="0 0 24 24">
+      <path d="M20 17.58A4.5 4.5 0 0 0 16.5 13H15a5 5 0 0 0-9.9.9A3.5 3.5 0 0 0 6.5 20H19a1 1 0 0 0 1-1z" />
+      <g stroke-linecap="round" stroke-width="1.4">
+        <line x1="8" y1="18" x2="8" y2="20" />
+        <line x1="12" y1="18" x2="12" y2="20" />
+        <line x1="16" y1="18" x2="16" y2="20" />
+      </g>
+    </symbol>
+    <symbol id="icon-wind" viewBox="0 0 24 24">
+      <path d="M3 12h12a3 3 0 1 0 0-6H6" stroke-linecap="round" stroke-width="1.6" fill="none" />
+    </symbol>
+  </svg>
+
+    <header>
+    <!-- Intestazione vuota: controlli spostati nella card Meteo -->
+    <div class="title"></div>
+    <div class="actions"></div>
+  </header>
+
+
+  <!-- Centered weather card above main -->
+  <div id="weatherCard" class="card weather-card">
+    <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
+        <span class="pill" id="addonVersion">v2.0.3</span>
+      </div>
+      <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex:1;justify-content:flex-end">
+        <!-- input durata e ricerca nascosti ma presenti per compatibilitÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  logica -->
+        <input id="durInput" type="number" min="1" max="30" step="1" value="10" title="Durata (minuti)" style="display:none"/>
+        <input id="searchBox" type="search" placeholder="Cerca." title="Filtra zone e programmi" style="display:none"/>
+        <div class="menu-dropdown">
+          <button class="menu-toggle icon" id="menuToggle" aria-haspopup="true" aria-expanded="false" aria-label="Apri menu">☰</button>
+          <div class="menu-content" id="menuContent">
+            <button id="exportBtn" title="Esporta JSON" class="icon" aria-label="Esporta JSON">Export</button>
+            <button id="entitiesBtn" title="Apri debug entita (porta 1978)" class="icon" aria-label="Apri debug entita">Entita</button>
+            <button id="eventLogBtn" title="Apri registro eventi" class="icon" aria-label="Apri registro eventi">Eventi</button>
+            <button class="primary icon" id="refreshBtn" aria-label="Aggiorna">Aggiorna</button>
+            <button class="danger icon" id="stopAllBtn" aria-label="Ferma tutte le irrigazioni">STOP TUTTO</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bd">
+      <div class="weather-grid">
+        <div class="weather-left">
+          <div id="weatherIconLarge" class="weather-icon-large" aria-hidden="true">-</div>
+        </div>
+        <div class="weather-right">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:18px;font-weight:700" id="weatherTemp">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????</div>
+              <div class="small" id="weatherCond">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????</div>
+            </div>
+            <div style="text-align:right;min-width:110px">
+              <div class="small">Temperatura</div>
+              <div id="weatherTempDetail" style="font-weight:700">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????</div>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px;gap:10px;align-items:center">
+            <div class="small" style="min-width:150px">Regolazione Stagionale</div>
+            <div class="bar" style="position:relative;flex:1" title="Regolazione Stagionale (%)">
+              <div id="seasonalAdjustFill" style="width:0%"></div>
+              <input id="seasonalAdjust" class="bar-range" type="range" min="0" max="200" step="10" value="100" aria-label="Regolazione Stagionale (%)"/>
+            </div>
+            <div id="seasonalAdjustVal" style="min-width:64px;text-align:right;font-weight:700">100%</div>
+          </div>
+
+          <div class="details" style="margin-top:8px">
+            <div class="weather-metric"><div class="small">Humidity</div><div id="weatherHum">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????</div></div>
+            <div class="weather-metric"><div class="small">Pressure</div><div id="weatherPress">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????</div></div>
+            <div class="weather-metric"><div class="small">Wind</div><div id="weatherWind">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????</div></div>
+          </div>
+
+          <div style="margin-top:8px">
+            <div class="stat"><b>Fattore Smart Calc</b><div class="v" id="w1"></div></div>
+            <div class="stat" style="margin-top:6px"><b>Ragionamento Smart Calc</b><div class="v" id="w2"></div></div>
+            <div class="stat" style="margin-top:6px"><b>Stato Meteo Irrigazione</b><div class="v" id="w3"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <section class="card">
+      <div class="hd">
+          <h2>Zone: <span id="zonesCount">?</span></h2>
+          <span class="pill" id="zoneStatus"><span id="zoneStatusDot" class="dot off"></span> <span id="zoneStatusText">Tutte OFF</span></span>
+        </div>
+      <div class="bd">
+        <div id="zones" class="zones"></div>
+      </div>
+    </section>
+
+        <aside class="card programs">
+      <div class="hd">
+        <h2>Programmi</h2>
+      </div>
+      <div class="bd">
+
+        <div class="toggle">
+          <input id="progEnabled" type="checkbox"/>
+          <div>
+            <div style="font-weight:700">Programmi abilitati</div>
+            <div class="small" id="progEntity">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????</div>
+          </div>
+        </div>
+
+        <div id="programs" style="display:flex; flex-direction:column; gap:10px; margin-top:10px;"></div>
+
+        <div class="hint" id="rawHint"></div>
+      </div>
+    </aside>
+  </main>
+
+  <div id="eventLogModal" class="eventlog-modal eventlog-hidden">
+    <div class="eventlog-box">
+      <div class="eventlog-header">
+        <div>Registro eventi</div>
+        <button id="btnEventLogClose" class="icon">Chiudi</button>
+      </div>
+      <div class="eventlog-tablewrap">
+        <table class="eventlog-table">
+          <thead>
+            <tr>
+              <th>Ora</th>
+              <th>Zona</th>
+              <th>Azione</th>
+              <th>Dettaglio</th>
+            </tr>
+          </thead>
+          <tbody id="eventLogBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .eventlog-hidden{display:none}
+    .eventlog-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999}
+    .eventlog-box{max-width:1100px;margin:6vh auto;background:#0f2a1f;border:1px solid rgba(255,255,255,.15);border-radius:16px;overflow:hidden}
+    .eventlog-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:rgba(255,255,255,.06)}
+    .eventlog-tablewrap{max-height:70vh;overflow:auto}
+    .eventlog-table{width:100%;border-collapse:collapse;font-size:12px;color:var(--txt)}
+    .eventlog-table th,
+    .eventlog-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;vertical-align:top}
+    .eventlog-table th{position:sticky;top:0;background:rgba(15,42,31,.95);text-transform:uppercase;font-size:11px;letter-spacing:.06em}
+    .eventlog-table tr:nth-child(odd) td{background:rgba(255,255,255,.02)}
+    .eventlog-table tr:hover td{background:rgba(255,255,255,.05)}
+  </style>
+
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+
+    // debug capture removed (clean runtime)
+
+
+    function toast(msg){
+      const t = el("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      clearTimeout(window.__tto);
+      window.__tto = setTimeout(()=>t.classList.remove("show"), 2200);
+    }
+
+    // Mantieni eventuale ?key=... e passalo alle API (mode=key)
+    const INGRESS_PREFIX = (() => {
+      const match = window.location.pathname.match(/\/api\/hassio_ingress\/[^\/]+/);
+      return match ? `${window.location.origin}${match[0]}` : "";
+    })();
+
+    function withKey(path){
+      const qs = new URLSearchParams(window.location.search);
+      const normalized = path.startsWith("/") ? path : `/${path}`;
+      const target = INGRESS_PREFIX ? `${INGRESS_PREFIX}${normalized}` : new URL(normalized, window.location.origin).toString();
+      const u = new URL(target);
+      if (qs.get("key")) u.searchParams.set("key", qs.get("key"));
+      return u.toString();
+    }
+
+    async function apiGet(path){
+      const res = await fetch(withKey(path), { cache: "no-store" });
+      const txt = await res.text();
+      let data;
+      try { data = JSON.parse(txt); } catch { data = { raw: txt }; }
+      if(!res.ok) throw new Error((data && data.error) ? data.error : (txt || res.statusText));
+      return data;
+    }
+
+    async function apiPost(path, payload){
+      const res = await fetch(withKey(path), {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: payload ? JSON.stringify(payload) : null
+      });
+      const txt = await res.text();
+      let data;
+      try { data = JSON.parse(txt); } catch { data = { raw: txt }; }
+      if(!res.ok) throw new Error((data && data.error) ? data.error : (txt || res.statusText));
+      return data;
+    }
+
+    // When true, periodic refresh() will be suppressed to avoid DOM rebuilds
+    // while the user is interacting (dragging) with sliders.
+    window.__suppressRefresh = false;
+    window.__suppressSeasonalAdjust = false;
+    window.__wiredSeasonalAdjust = false;
+
+    function renderSeasonalAdjust(entityId, value, attrs){
+      const slider = el('seasonalAdjust');
+      const label = el('seasonalAdjustVal');
+      const fill = el('seasonalAdjustFill');
+      if(!slider || !label) return;
+
+      const min = Number(attrs?.min ?? 0);
+      const max = Number(attrs?.max ?? 200);
+      const step = Number(attrs?.step ?? 10);
+      if(!Number.isNaN(min)) slider.min = String(min);
+      if(!Number.isNaN(max)) slider.max = String(max);
+      if(!Number.isNaN(step) && step > 0) slider.step = String(step);
+
+      const n = (value == null ? Number(slider.value) : Number(value));
+      if(!Number.isNaN(n)){
+        if(!window.__suppressSeasonalAdjust) slider.value = String(n);
+        label.textContent = `${Math.round(n)}%`;
+        if(fill){
+          const denom = (Number(slider.max) - Number(slider.min));
+          const pct = denom > 0 ? ((n - Number(slider.min)) / denom) * 100 : 0;
+          fill.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+        }
+      }else{
+        label.textContent = '-';
+        if(fill) fill.style.width = '0%';
+      }
+      slider.dataset.entityId = entityId || '';
+    }
+
+    function wireSeasonalAdjust(){
+      if(window.__wiredSeasonalAdjust) return;
+      const slider = el('seasonalAdjust');
+      const label = el('seasonalAdjustVal');
+      if(!slider || !label) return;
+      window.__wiredSeasonalAdjust = true;
+
+      let t = null;
+      async function persist(v){
+        const entityId = slider.dataset.entityId || 'number.regolazione_stagionale';
+        await apiPost('/api/meteo/manual_adjustment_set', { entity_id: entityId, value: Number(v) });
+      }
+
+      slider.addEventListener('pointerdown', ()=>{ window.__suppressSeasonalAdjust = true; });
+      ['pointerup','pointercancel','touchend','mouseup'].forEach(ev => {
+        slider.addEventListener(ev, ()=>{ window.__suppressSeasonalAdjust = false; });
+      });
+
+      slider.addEventListener('input', ()=>{
+        const v = Number(slider.value);
+        if(!Number.isNaN(v)) label.textContent = `${Math.round(v)}%`;
+        const fill = el('seasonalAdjustFill');
+        if(fill){
+          const denom = (Number(slider.max) - Number(slider.min));
+          const pct = denom > 0 ? ((v - Number(slider.min)) / denom) * 100 : 0;
+          fill.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+        }
+        if(t) clearTimeout(t);
+        t = setTimeout(async ()=>{
+          try{ await persist(slider.value); }
+          catch(e){ toast('Errore regolazione: ' + (e.message || e)); }
+        }, 400);
+      });
+      slider.addEventListener('change', async ()=>{
+        try{
+          if(t) clearTimeout(t);
+          await persist(slider.value);
+          toast('Regolazione aggiornata');
+          setTimeout(()=>refresh(true), 400);
+        }catch(e){
+          toast('Errore regolazione: ' + (e.message || e));
+          setTimeout(()=>refresh(true), 400);
+        }
+      });
+    }
+
+    function pctClamp(p){
+      if(p == null || Number.isNaN(Number(p))) return null;
+      p = Number(p);
+      if(p < 0) p = 0;
+      if(p > 100) p = 100;
+      return p;
+    }
+
+    function setOnline(ok){
+      const onlineDot = el("onlineDot");
+      const onlineTxt = el("onlineTxt");
+      const tickDot = el("tickDot");
+      const tickTxt = el("tickTxt");
+      if(onlineDot) onlineDot.className = "dot " + (ok ? "on":"off");
+      if(onlineTxt) onlineTxt.textContent = ok ? "Connesso" : "Offline / errore";
+      if(tickDot) tickDot.className = "dot " + (ok ? "on":"off");
+      if(tickTxt) tickTxt.textContent = ok ? "OK" : "ERR";
+    }
+
+    // Weather icon helper: chooses a simple emoji based on the textual weather state
+    function _chooseWeatherIconFromText(text){
+      // return an icon key (one of: sun, cloud, rain, storm, snow, wind, cloud)
+      if(!text) return 'cloud';
+      const t = String(text).toLowerCase();
+      if(t.includes('sole') || t.includes('sun') || t.includes('clear')) return 'sun';
+      if(t.includes('nuvol') || t.includes('cloud') || t.includes('coperto')) return 'cloud';
+      if(t.includes('piogg') || t.includes('rain')) return 'rain';
+      if(t.includes('tempor') || t.includes('storm') || t.includes('fulmine')) return 'storm';
+      if(t.includes('neve') || t.includes('snow')) return 'snow';
+      if(t.includes('vento') || t.includes('wind')) return 'wind';
+      return 'cloud';
+    }
+
+    function updateWeatherIconFromText(){
+      try{
+        const iconEl = el('weatherIcon');
+        if(!iconEl) return;
+
+        // PRIORIT?????: testo meteo della card (device weather)
+        const condEl = el('weatherCond');
+        const txtFromCard = condEl ? (condEl.textContent || condEl.innerText || '') : '';
+
+        // fallback: Smart Calc boxes (w3/w1/w2)
+        const target = el('w3') || el('w1') || el('w2');
+        const txtFromBoxes = target ? (target.textContent || target.innerText || '') : '';
+
+        const txt = (txtFromCard && txtFromCard.trim()) ? txtFromCard : txtFromBoxes;
+
+        const key = _chooseWeatherIconFromText(txt);
+        iconEl.innerHTML = `<svg class="icon-svg" aria-hidden="true"><use href="#icon-${key}"></use></svg>`;
+        iconEl.title = txt ? ('Tempo: ' + txt.trim()) : 'Tempo: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????';
+      }catch(e){ /* no-op */ }
+    }
+
+    // Observe changes to the w3 element so the icon updates automatically
+    (function(){
+      const target = el('w3') || el('w1') || el('w2');
+      if(!target) return;
+      updateWeatherIconFromText();
+      try{
+        const mo = new MutationObserver(()=>{ updateWeatherIconFromText(); });
+        mo.observe(target, { childList:true, subtree:true, characterData:true });
+      }catch(e){ /* MutationObserver may not be supported in some envs */ }
+    })();
+
+    // Update the richer weather card fields (icon large, bar fill and metric copies)
+    function updateWeatherCard(){
+      try{
+        const tW1 = el('w1') ? (el('w1').textContent || '').trim() : '';
+        const tW2 = el('w2') ? (el('w2').textContent || '').trim() : '';
+        const tW3 = el('w3') ? (el('w3').textContent || '').trim() : '';
+        // copy basic textual values (only if non valorizzati da device_weather)
+        const curTemp = (el('weatherTemp')?.textContent || '').trim();
+        const curTempDetail = (el('weatherTempDetail')?.textContent || '').trim();
+        const curCond = (el('weatherCond')?.textContent || '').trim();
+        if(el('weatherCond') && (!curCond || curCond === '-')) el('weatherCond').textContent = tW3 || '-';
+        // temp: prefer device_weather; fallback to w1 only se vuoto
+        if(el('weatherTemp') && (!curTemp || curTemp === '-')) el('weatherTemp').textContent = tW1 || '-';
+        if(el('weatherTempDetail') && (!curTempDetail || curTempDetail === '-')) el('weatherTempDetail').textContent = tW1 || '-';
+
+        // map icon using the same helper
+        const bigIcon = el('weatherIconLarge');
+        if(bigIcon){
+          const key = _chooseWeatherIconFromText(tW3 || tW2 || tW1);
+          bigIcon.innerHTML = `<svg class="icon-svg large" aria-hidden="true"><use href="#icon-${key}"></use></svg>`;
+        }
+
+        // attempt to derive a numeric fill from w1 if it contains a number
+        let pct = 0;
+        const m = (tW1 || '').match(/-?\d+(?:[\.,]\d+)?/);
+        if(m){ pct = Math.max(0, Math.min(100, Number(m[0].replace(',', '.')))); }
+        if(el('weatherBarFill')) el('weatherBarFill').style.width = pct + '%';
+      }catch(e){ /* ignore */ }
+    }
+
+    // invoke card update when weather text changes
+    (function(){
+      const target = el('w3') || el('w2') || el('w1');
+      if(!target) return;
+      updateWeatherCard();
+      try{
+        const mo2 = new MutationObserver(()=>{ updateWeatherCard(); updateWeatherIconFromText(); });
+        mo2.observe(target, { childList:true, subtree:true, characterData:true });
+      }catch(e){ /* no-op */ }
+    })();
+
+    function renderZones(zones, activeZone){
+      const zonesEl = el("zones");
+      zonesEl.innerHTML = "";
+
+      if(!zones || !zones.length){
+        zonesEl.innerHTML = `<div class="hint">Nessuna zona trovata.</div>`;
+        return;
+      }
+      try{
+        const zc = el('zonesCount');
+        const count = zones.length;
+        if(zc) zc.textContent = count;
+      }catch(_){}
+      // stato ottimistico (usato per evitare flicker tra click e refresh HA)
+      const optMap = (window.__optimisticZones = window.__optimisticZones || {});
+      const now = Date.now();
+      let anyOnGlobal = false;
+      let activeName = null;
+      const lookup = window.__zoneLookup = window.__zoneLookup || {};
+
+      zones.forEach((z)=>{
+        lookup[String(z.id)] = z.name || `Zona ${z.id}`;
+        let isOn = !!z.is_on;
+        const missingAny = z.missing && (z.missing.switch || z.missing.remaining || z.missing.duration || z.missing.percent);
+        const p = pctClamp(z.percent);
+        // Usa anche remaining/percent per stimare lo stato dal component (fallback quando lo switch tarda)
+        try{
+          const remRaw = (z.remaining_raw ?? z.remaining ?? '').toString().trim();
+          const pctNum = Number(z.percent);
+          const hasRemaining = remRaw && !['0','0:00','00:00'].includes(remRaw);
+          // Con i sensori aggregati, lo stato ON/OFF arriva giÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  da `z.is_on`.
+          // Usiamo solo il residuo come fallback (mai il progresso %: puÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â² restare >0 anche a fine ciclo).
+          if(!isOn && activeZone != null && String(activeZone) === String(z.id)){
+            isOn = true;
+          }
+        }catch(_){}
+        // applica override ottimistico per pochi secondi
+        const opt = optMap[z.id];
+        if(opt && opt.state === 'on'){
+          if(!isOn && (now - opt.ts) < 3500){ isOn = true; }
+          if(isOn && z.is_on) delete optMap[z.id];
+        }
+        if(opt && opt.state === 'off'){
+          if(isOn && (now - opt.ts) < 3500){ isOn = false; }
+          if(!isOn && !z.is_on) delete optMap[z.id];
+        }
+        if(isOn){
+          anyOnGlobal = true;
+          if(!activeName) activeName = z.name || `Zona ${z.id}`;
+        }
+
+        // Interpretazioni e presentazione per percent/energy/remaining/duration
+        let percentInterpretation = z.percent_interpretation || 'percent';
+        const percentUnit = z.percent_unit || (z.percent_attrs && z.percent_attrs.unit_of_measurement) || '';
+        // Fallback: se non abbiamo unit??ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â , interpretiamo in base al valore numerico
+        if ((!percentUnit || percentUnit === '') && z.percent != null) {
+          const num = Number(z.percent);
+          if (!Number.isNaN(num)) {
+            // valori <= 100 trattati come percentuali plausibili
+            percentInterpretation = (Math.abs(num) <= 100) ? 'percent' : 'energy';
+          }
+        }
+        const remainingUnit = (z.remaining_attrs && z.remaining_attrs.unit_of_measurement) || '';
+        const durationUnit = (z.duration_attrs && z.duration_attrs.unit_of_measurement) || '';
+        const durationValue = (z.duration_configured ?? (z.duration_configured_raw ? Number(z.duration_configured_raw) : null) ?? (z.duration != null ? z.duration : null));
+        const targetDurationEntity = z.duration_entity || z.duration_configured_entity || z.configured_duration_entity || null;
+        const targetDurationDomain = targetDurationEntity ? (String(targetDurationEntity).split('.')[0] || '') : '';
+        const canEditDuration = !!(targetDurationEntity && (targetDurationDomain === 'number' || targetDurationDomain === 'input_number'));
+
+        // Display values
+        const rem = (z.remaining == null ? "-" : (String(z.remaining) + (remainingUnit ? (' ' + remainingUnit) : '')));
+        const dur = (durationValue == null ? "-" : (String(durationValue) + (durationUnit ? (' ' + durationUnit) : '')));
+        const percentValRaw = (z.percent_raw ?? z.percent);
+        let percentDisplay = '-';
+        let progressWidth = 0;
+        if (percentValRaw != null) {
+          const m = String(percentValRaw).replace(',', '.').match(/-?\d+(?:\.\d+)?/);
+          const num = m ? Number(m[0]) : NaN;
+          if (!Number.isNaN(num)) {
+            const pctSafe = Math.max(0, Math.min(100, num));
+            percentDisplay = String(num) + (percentUnit ? (' ' + percentUnit) : '%');
+            progressWidth = pctSafe;
+          }
+        }
+        // fallback: se la zona ? ON ma percentuale non disponibile, stima da remaining/durata
+        if (isOn && (progressWidth === 0 || Number.isNaN(progressWidth)) && durationValue) {
+          let remSec = null;
+          if (z.remaining_raw) {
+            const nums = String(z.remaining_raw).replace(/[^0-9:]/g, '').split(':').map(Number).filter(v => !Number.isNaN(v));
+            if (nums.length === 2) remSec = nums[0] * 60 + nums[1];
+            else if (nums.length === 3) remSec = nums[0] * 3600 + nums[1] * 60 + nums[2];
+          }
+          if (remSec == null && z.remaining != null && !Number.isNaN(Number(z.remaining))) {
+            remSec = Number(z.remaining);
+          }
+          const totalSec = Number(durationValue) * 60;
+          if (remSec != null && totalSec > 0) {
+            const pctCalc = Math.max(0, Math.min(100, 100 * (1 - (remSec / totalSec))));
+            progressWidth = pctCalc;
+            percentDisplay = `${Math.round(pctCalc)}%`;
+          }
+        }
+        const smartVal = (z.duration_smart_raw ?? z.duration_smart);
+        const effVal = (z.duration_effective_raw ?? z.duration_effective);
+        const fmtMin = (v) => (v === null || v === undefined || v === false || Number.isNaN(Number(v))) ? "-" : `${Number(v).toFixed(1)} min`;
+        const smartDisplay = fmtMin(smartVal);
+        const effDisplay = fmtMin(effVal);
+
+        const card = document.createElement("div");
+        card.className = "zone" + (isOn ? " on" : "");
+        card.innerHTML = `
+          <div class="top">
+            <div class="name">
+              <span style="display:flex;align-items:center;gap:8px">
+                <b class="zone-name" data-entity="${z.switch || ''}" data-zone="${z.id}">${z.name}</b>
+                <button class="edit-icon" title="Rinomina zona" aria-label="Rinomina zona" tabindex="0"> 
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" fill="currentColor"/>
+                    <path d="M20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z" fill="currentColor"/>
+                  </svg>
+                </button>
+              </span>
+              <small>${isOn ? "Irrigazione attiva" : "In attesa"}</small>
+            </div>
+            <div class="mini">
+              <span class="dot ${isOn ? "on":"off"}"></span>
+              <span>${isOn ? "ON" : "OFF"}</span>
+            </div>
+          </div>
+
+          <div class="btns">
+            <button class="primary" ${isOn ? "disabled": ""} data-act="start" data-zone="${z.id}">Avvia</button>
+            <button class="danger" ${isOn ? "": "disabled"} data-act="stop" data-zone="${z.id}">Stop</button>
+          </div>
+
+          <div class="ctrl" style="display:none">
+            <input class="zone-dur-range" type="range" min="1" max="30" step="1" value="${durationValue != null ? durationValue : 10}" aria-label="Durata zona ${z.id} (min)" />
+            <input class="zone-dur-num mono" type="number" min="1" max="30" step="1" value="${durationValue != null ? durationValue : 10}" />
+          </div>
+
+          <div class="row" style="margin-top:10px; gap:12px;">
+            <div class="small">Residuo: <b>${rem}</b></div>
+            <div class="small">Durata: <b>${dur}</b></div>
+            <div class="small">${percentInterpretation === 'energy' ? 'Produzione' : 'Progresso'}: <b>${percentDisplay}</b></div>
+          </div>
+
+          <div class="bar" title="Progresso">
+            <div style="width:${progressWidth}%"></div>
+            <input class="bar-range" type="range" min="1" max="30" step="1" value="${durationValue != null ? durationValue : 10}" aria-label="Imposta durata zona ${z.id}" style="display:${isOn ? 'none' : 'block'}" />
+          </div>
+
+          <div class="zone-meta" style="margin-top:12px; display:flex; gap:18px; flex-wrap:wrap; align-items:center; justify-content:flex-end;">
+            <label class="toggle ignore" style="gap:8px;">
+              <input type="checkbox" class="ignore-toggle" data-entity="${z.ignore_meteo_entity || ''}" ${z.ignore_meteo_state === 'on' ? 'checked' : ''} />
+              <span>Ignora meteo</span>
+            </label>
+            <div class="small">Durata Smart Meteo: <b>${smartDisplay}</b></div>
+            <div class="small">Durata Effettiva: <b>${effDisplay}</b></div>
+          </div>
+
+          <div class="sprinkler" aria-hidden="true">
+            <div class="spray">
+              <div class="arc"></div>
+              <div class="droplets">
+                <div class="drop" style="left:5px; top:6px; animation-delay:.05s"></div>
+                <div class="drop" style="left:20px; top:18px; animation-delay:.20s"></div>
+                <div class="drop" style="left:36px; top:10px; animation-delay:.33s"></div>
+                <div class="drop" style="left:52px; top:22px; animation-delay:.12s"></div>
+                <div class="drop" style="left:70px; top:12px; animation-delay:.41s"></div>
+              </div>
+            </div>
+            <div class="head"></div>
+            <div class="neck"></div>
+            <div class="base"></div>
+          </div>
+        `;
+
+                          // attach per-button listeners to avoid delegation issues
+        zonesEl.appendChild(card);
+        try {
+                    const startBtn = card.querySelector('button[data-act="start"]');
+          const stopBtn = card.querySelector('button[data-act="stop"]');
+          const range = card.querySelector('.zone-dur-range');
+          const num = card.querySelector('.zone-dur-num');
+          const barRange = card.querySelector('.bar-range');
+          const targetDurationEntity = z.duration_entity || z.duration_configured_entity || z.configured_duration_entity || null;
+          const targetDurationDomain = targetDurationEntity ? (String(targetDurationEntity).split('.')[0] || '') : '';
+          const canEditDuration = !!(targetDurationEntity && (targetDurationDomain === 'number' || targetDurationDomain === 'input_number'));
+          // sync range <-> number
+          if(range && num){
+            range.addEventListener('input', ()=>{ num.value = range.value });
+            num.addEventListener('input', ()=>{ range.value = num.value });
+            // When the user finishes changing the value (change event), persist it to HA
+            const persistDuration = async (val)=>{
+              try{
+                if(!canEditDuration) return;
+                await apiPost('/api/irrigazione/duration_set', { zone_id: z.id, entity_id: targetDurationEntity, value: Number(val) });
+                toast(`Durata Zona ${z.id} impostata: ${val} min`);
+                // refresh to read attributes from HA (optional)
+                await refresh(true);
+              } catch(e){
+                console.error('set duration failed', e);
+                toast('Errore salvataggio durata: ' + (e && e.message ? e.message : e));
+              }
+            };
+            range.addEventListener('change', ()=>persistDuration(range.value));
+            num.addEventListener('change', ()=>persistDuration(num.value));
+          }
+
+          // Wire the bar overlay range as the primary slider (visible in the progress area)
+          if(barRange){
+            let warnedReadonly = false;
+            // keep barRange in sync with numeric value
+            if(num) num.value = barRange.value;
+            // per-zona debounce timer (isolato per card)
+            let _persistTimer = null;
+            // Debounced persist: update HA while sliding but DO NOT trigger a full refresh
+            // (refresh would re-render zones and interrupt dragging). Final refresh
+            // is executed on 'change' (end of drag).
+            const _debouncePersist = (val, delay=400)=>{
+              if(_persistTimer) clearTimeout(_persistTimer);
+              _persistTimer = setTimeout(async ()=>{
+                try{
+                  if(!canEditDuration){
+                    if(!warnedReadonly){ toast('Durata non modificabile: manca number/input_number'); warnedReadonly = true; }
+                    return;
+                  }
+                  await apiPost('/api/irrigazione/duration_set', { zone_id: z.id, entity_id: targetDurationEntity, value: Number(val) });
+                  toast(`Durata Zona ${z.id} impostata: ${val} min`);
+                  // NOTE: do NOT call refresh() here - avoids DOM rebuild while dragging
+                } catch(e){
+                  console.error('debounced persist failed', e);
+                  toast('Errore salvataggio durata: ' + (e && e.message ? e.message : e));
+                }
+              }, delay);
+            };
+
+            barRange.addEventListener('input', ()=>{
+              try{
+                if(num) num.value = barRange.value;
+                if(range) range.value = barRange.value;
+                // debounce save while sliding
+                _debouncePersist(barRange.value, 400);
+              } catch(_){ }
+            });
+            // ensure final persist on change as well
+            barRange.addEventListener('change', async ()=>{
+              try{
+                const val = barRange.value;
+                if(num) num.value = val;
+                if(range) range.value = val;
+                // Ensure final persist and then refresh once to update any attributes
+                if(!canEditDuration){
+                  if(!warnedReadonly){ toast('Durata non modificabile: manca number/input_number'); warnedReadonly = true; }
+                } else {
+                  await apiPost('/api/irrigazione/duration_set', { zone_id: z.id, entity_id: targetDurationEntity, value: Number(val) });
+                  toast(`Durata Zona ${z.id} impostata: ${val} min`);
+                }
+                await refresh(true);
+              } catch(e){
+                console.error('barRange final persist failed', e);
+              }
+            });
+            // Suppress periodic refresh while user is dragging; re-enable on pointerup/cancel
+            barRange.addEventListener('pointerdown', ()=>{ window.__suppressRefresh = true; });
+            ['pointerup','pointercancel','lostpointercapture'].forEach(ev =>
+              barRange.addEventListener(ev, ()=>{ window.__suppressRefresh = false; })
+            );
+          }
+
+          [startBtn, stopBtn].forEach(btn => {
+            if (!btn) return;
+            btn.addEventListener("click", async (ev) => {
+              ev.stopPropagation();
+              const act = btn.dataset.act;
+              const zone_id = Number(btn.dataset.zone);
+              const durationInput = card.querySelector('.zone-dur-num') || el('durInput');
+              const duration = Number((durationInput && durationInput.value) || 600);
+              const entity_id = z.switch || z.switch_entity || z.switch_entity_id || null;
+              // evita refresh automatici durante la fase ottimistica
+              let revertSuppress = false;
+              try {
+                window.__optimisticZones = window.__optimisticZones || {};
+                window.__optimisticZones[zone_id] = { state: (act === 'start' ? 'on' : 'off'), ts: Date.now() };
+                btn.disabled = true;
+                // feedback ottimistico immediato
+                if(act === 'start'){
+                  card.classList.add('on');
+                  if(startBtn) startBtn.disabled = true;
+                  if(stopBtn) stopBtn.disabled = false;
+                } else {
+                  card.classList.remove('on');
+                  if(startBtn) startBtn.disabled = false;
+                  if(stopBtn) stopBtn.disabled = true;
+                }
+                window.__suppressRefresh = true; revertSuppress = true;
+                if (act === 'start') {
+                  await apiPost('/api/irrigazione/zone/start', { zone_id, duration, entity_id });
+                  toast(`Avvio zona ${zone_id} (${duration} min)`);
+                } else if (act === 'stop') {
+                  await apiPost('/api/irrigazione/zone/stop', { zone_id, entity_id });
+                  toast(`Stop zona ${zone_id}`);
+                }
+                // refresh ritardato (evita rimbalzi se HA ??ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨ lento a cambiare stato)
+                setTimeout(()=>{ window.__suppressRefresh = false; refresh(true); }, 900);
+              } catch (e) {
+                console.error('button handler error', e);
+                toast('Errore: ' + (e && e.message ? e.message : e));
+                try { window.__suppressRefresh = false; await refresh(true); } catch(_) { }
+              } finally {
+                if(revertSuppress && window.__suppressRefresh) window.__suppressRefresh = false;
+                try { btn.disabled = false; } catch(_) { }
+              }
+            });
+          });
+
+          // Toggle ignora meteo
+          const ignoreToggle = card.querySelector('.ignore-toggle');
+          if(ignoreToggle){
+            ignoreToggle.addEventListener('change', async ()=>{
+              try{
+                const entity = ignoreToggle.dataset.entity;
+                if(!entity){
+                  toast('Entit??ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  ignora meteo mancante');
+                  ignoreToggle.checked = !ignoreToggle.checked;
+                  return;
+                }
+                await apiPost('/api/irrigazione/ignore_meteo', { zone_id: z.id, entity_id: entity, enabled: ignoreToggle.checked });
+                toast(ignoreToggle.checked ? 'Ignora meteo attivato' : 'Ignora meteo disattivato');
+                await refresh(true);
+              }catch(e){
+                console.error('ignore meteo toggle failed', e);
+                toast('Errore ignora meteo: ' + (e && e.message ? e.message : e));
+              }
+            });
+          }
+
+          // Inline rename: click on the zone name to edit
+          try {
+            const nameEl = card.querySelector('.zone-name');
+            if (nameEl) {
+              nameEl.style.cursor = 'pointer';
+              nameEl.title = 'Clicca per rinominare';
+              // attach click to both the name and the edit icon
+              const editIcon = card.querySelector('.edit-icon');
+              if(editIcon){
+                editIcon.style.background = 'transparent'; editIcon.style.border = '0'; editIcon.style.padding = '4px'; editIcon.style.cursor = 'pointer'; editIcon.style.color = 'var(--muted)'; editIcon.style.display = 'inline-flex'; editIcon.style.alignItems = 'center'; editIcon.style.justifyContent = 'center'; editIcon.style.borderRadius = '8px';
+                editIcon.addEventListener('keydown', (ev)=>{ if(ev.key==='Enter' || ev.key===' ') { ev.preventDefault(); nameEl.click(); } });
+                editIcon.addEventListener('click', ()=>{ nameEl.click(); });
+              }
+              nameEl.addEventListener('click', ()=>{
+                const entity = nameEl.dataset.entity;
+                const zoneId = nameEl.dataset.zone;
+                const current = nameEl.textContent || '';
+                const input = document.createElement('input');
+                input.type = 'text'; input.value = current;
+                input.style.padding = '6px 8px'; input.style.borderRadius = '8px'; input.style.minWidth = '140px';
+                const saveBtn = document.createElement('button'); saveBtn.className = 'primary'; saveBtn.textContent = 'Salva';
+                const cancelBtn = document.createElement('button'); cancelBtn.textContent = 'Annulla';
+                const wrap = document.createElement('div'); wrap.style.display='flex'; wrap.style.gap='8px'; wrap.style.alignItems='center';
+                wrap.appendChild(input); wrap.appendChild(saveBtn); wrap.appendChild(cancelBtn);
+                // prevent periodic refresh from closing the editor
+                window.__suppressRefresh = true;
+                // hide the original name and append the editor under the .name container
+                const nameParent = nameEl.parentNode;
+                nameEl.style.display = 'none';
+                wrap.className = 'inline-edit-wrap';
+                nameParent.appendChild(wrap);
+                input.focus(); input.select();
+
+                // style buttons smaller
+                saveBtn.className = 'small-btn primary';
+                cancelBtn.className = 'small-btn cancel';
+
+                saveBtn.addEventListener('click', async ()=>{
+                  try{
+                    saveBtn.disabled = true;
+                    await apiPost('/api/irrigazione/zone/rename_ws', { entity_id: entity, zone_id: zoneId, name: input.value });
+                    toast('Nome salvato');
+                    // re-enable refresh before forcing a refresh so UI updates
+                    window.__suppressRefresh = false;
+                    await refresh(true);
+                  } catch(e){
+                    console.error('rename failed', e);
+                    toast('Errore salvataggio nome: ' + (e && e.message ? e.message : e));
+                    window.__suppressRefresh = false;
+                  } finally { saveBtn.disabled = false; }
+                });
+
+                cancelBtn.addEventListener('click', ()=>{
+                  // remove editor and restore original name element, keep inside card
+                  try{ nameParent.removeChild(wrap); nameEl.style.display = ''; } catch(_){ }
+                  window.__suppressRefresh = false;
+                });
+
+                // allow Enter to save and Escape to cancel
+                input.addEventListener('keydown', (ev)=>{
+                  if(ev.key === 'Enter'){ saveBtn.click(); }
+                  if(ev.key === 'Escape'){ cancelBtn.click(); }
+                });
+              });
+            }
+          } catch(e){ console.error('attach rename listener failed', e); }
+        } catch (e) {
+          console.error('attach per-button listeners failed', e);
+        }
+      });
+
+      // aggiorna legenda stato globale (dopo aver applicato l'ottimistico)
+      try{
+        const dot = el('zoneStatusDot');
+        const txt = el('zoneStatusText');
+        if(dot) dot.className = 'dot ' + (anyOnGlobal ? 'on' : 'off');
+        const statusLabel = anyOnGlobal
+          ? (activeName ? `In irrigazione Zona ${activeName}` : 'In irrigazione')
+          : 'Tutte OFF';
+        if(txt) txt.textContent = statusLabel;
+      }catch(e){ /* no-op */ }
+
+      const activeZoneEl = el("activeZone");
+      if(activeZoneEl){
+        activeZoneEl.textContent = activeName || (activeZone == null ? "-" : activeZone);
+      }
+    }
+
+    function renderWeather(weather){
+      // ordine come server: fattore, ragionamento, stato
+      const w = weather || [];
+      el("w1").textContent = w[0]?.missing ? "missing" : (w[0]?.state ?? "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????");
+      el("w2").textContent = w[1]?.missing ? "missing" : (w[1]?.state ?? "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????");
+      el("w3").textContent = w[2]?.missing ? "missing" : (w[2]?.state ?? "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????");
+    }
+
+    function renderPrograms(enabledState, enabledEntity, programs, zones){
+      window.__suppressRefresh = false;
+      const zoneMap = {};
+      (zones || []).forEach(z => { zoneMap[String(z.id)] = z.name || `Zona ${z.id}`; });
+      window.__zoneLookup = zoneMap;
+
+      el("progEntity").textContent = enabledEntity || "-";
+      const enabled = (enabledState === "on");
+      const cb = el("progEnabled");
+      if(cb){
+        cb.checked = enabled;
+        cb.onchange = async () => {
+          try{
+            await apiPost("/api/programs/enabled", { enabled: cb.checked });
+            toast(cb.checked ? "Programmi abilitati" : "Programmi disabilitati");
+            await refresh(true);
+          } catch(e){
+            toast("Errore toggle programmi: " + e.message);
+            await refresh(true);
+          }
+        };
+      }
+
+      const list = el("programs");
+      list.innerHTML = "";
+      if(!programs || !programs.length){
+        list.innerHTML = `<div class="hint">Nessun programma trovato.</div>`;
+        return;
+      }
+
+      const dayLabels = {mon:"Lun",tue:"Mar",wed:"Mer",thu:"Gio",fri:"Ven",sat:"Sab",sun:"Dom"};
+      const allDays = ["mon","tue","wed","thu","fri","sat","sun"];
+
+      (programs || []).forEach(p=>{
+        const prog = document.createElement("div");
+        prog.className = "prog";
+        const pctRaw = p.progress;
+        const pct = pctRaw == null ? null : pctClamp(parseFloat(pctRaw));
+        const zonesList = p.zones || p.zones_names || [];
+        const daysList = p.days || p.weekdays || [];
+        const rawName = (p.name || "");
+        const cleaned = rawName
+          .replace(/Centralina\s+Irrigazione/gi, "")
+          .replace(/-?\s*schedule/gi, "")
+          .replace(/Programma/gi, "")
+          .replace(/[-]+/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+          .replace(/^-\s*/g, "")
+          .replace(/\s*-$/g, "");
+        const displayName = "Programma " + (cleaned || rawName || "");
+        const dayLong = {mon:"Luned&igrave;",tue:"Marted&igrave;",wed:"Mercoled&igrave;",thu:"Gioved&igrave;",fri:"Venerd&igrave;",sat:"Sabato",sun:"Domenica"};
+        const pauseVal = (p.pause_minutes != null ? p.pause_minutes : (p.pause_minuti ?? ""));
+        const timeVal = (p.schedule && /^\d{1,2}:\d{2}/.test(p.schedule)) ? p.schedule : ((p.time && /^\d{1,2}:\d{2}/.test(p.time)) ? p.time : "");
+        const timeDisplay = timeVal || (p.schedule || p.time || "");
+        const initialEnabled = (p.program_state === "on" || p.program_state === true || p.enabled === true);
+
+        prog.innerHTML = `
+          <div class="row" style="align-items:flex-start;gap:10px">
+            <div>
+              <div style="font-weight:800;font-size:15px">${displayName}</div>
+              <div class="small">ID: ${p.program_id}</div>
+            </div>
+            <div class="row" style="gap:8px;align-items:center">
+              <label class="small" style="display:flex;align-items:center;gap:6px">
+                <input type="checkbox" class="prog-enabled-inline" ${initialEnabled ? 'checked' : ''}/>
+                <span>Abilitato</span>
+              </label>
+              <div class="small" style="text-align:right">${timeDisplay ? `Ora: <b>${timeDisplay}</b>` : ''}</div>
+            </div>
+          </div>
+
+          <div class="row" style="flex-wrap:wrap;gap:8px">
+            <div class="small">Giorni:</div>
+            <div class="small">
+              ${daysList && daysList.length ? daysList.map(d=>dayLong[d] || d).join('<br>') : '-'}
+            </div>
+          </div>
+
+          <div class="row" style="flex-wrap:wrap;gap:8px">
+            <div class="small">Zone:</div>
+            <div class="small">
+              ${zonesList && zonesList.length ? zonesList.map(zid=>zoneMap[String(zid)] || zid).join('<br>') : '-'}
+            </div>
+          </div>
+
+          <div class="small">Pausa tra zone: <b>${pauseVal !== "" ? pauseVal + ' min' : '-'}</b></div>
+          <div class="bar" title="Progresso">
+            <div style="width:${pct == null ? 0 : pct}%"></div>
+          </div>
+          <div class="small" style="text-align:right;margin-top:6px">Progresso: <b>${pct == null ? '-' : pct + '%'}</b></div>
+
+          <div class="row" style="gap:8px;flex-wrap:wrap">
+            <button class="pill-btn edit-btn">Modifica</button>
+          </div>
+
+          <div class="prog-edit" style="display:none">
+            <label>Nome
+              <input type="text" class="prog-name" value="${p.name || ''}" />
+            </label>
+            <label>Ora inizio
+              <input type="time" class="prog-time" value="${timeVal}" />
+            </label>
+            <label>Pause (min)
+              <input type="number" class="prog-pause" step="0.1" min="0" value="${pauseVal !== '' ? pauseVal : ''}" placeholder="es. 0.5" />
+            </label>
+            <label>Abilitato programma
+              <input type="checkbox" class="prog-enabled" ${initialEnabled ? 'checked' : ''} />
+            </label>
+            <div style="grid-column:1/-1">
+              <div class="small" style="margin-bottom:4px">Giorni</div>
+              <div class="days-grid">
+                ${allDays.map(d=>`<label><input type="checkbox" value="${d}" ${daysList.includes(d)?'checked':''}/> ${dayLabels[d]}</label>`).join('')}
+              </div>
+            </div>
+            <div style="grid-column:1/-1">
+              <div class="small" style="margin-bottom:4px">Zone</div>
+              <div class="zones-grid">
+                ${(zones || []).map(z=>`<label><input type="checkbox" value="${z.id}" ${zonesList.map(String).includes(String(z.id))?'checked':''}/> ${z.name || 'Zona '+z.id}</label>`).join('')}
+              </div>
+            </div>
+            <div class="row" style="gap:8px">
+              <button class="primary" data-act="save">Salva</button>
+              <button class="pill-btn" data-act="cancel">Annulla</button>
+            </div>
+          </div>
+        `;
+
+        const editBtn = prog.querySelector(".edit-btn");
+        const editPane = prog.querySelector(".prog-edit");
+        const inlineToggle = prog.querySelector('.prog-enabled-inline');
+        if(inlineToggle){
+          inlineToggle.addEventListener('change', async ()=>{
+            try{
+              inlineToggle.disabled = true;
+              await apiPost('/api/programs/update', {
+                program_id: p.program_id,
+                enabled: inlineToggle.checked
+              });
+              toast(inlineToggle.checked ? 'Programma abilitato' : 'Programma disabilitato');
+              await refresh(true);
+            }catch(e){
+              toast('Errore toggle programma: ' + (e.message || e));
+              inlineToggle.checked = !inlineToggle.checked; // revert
+            }finally{
+              inlineToggle.disabled = false;
+            }
+          });
+        }
+        editBtn?.addEventListener('click', ()=>{
+          const willShow = (editPane.style.display === 'none' || !editPane.style.display);
+          editPane.style.display = willShow ? '' : 'none';
+          window.__suppressRefresh = willShow;
+        });
+
+        editPane?.querySelectorAll('button[data-act]').forEach(b=>{
+          b.addEventListener('click', async ()=>{
+            const act = b.dataset.act;
+            if(act === 'cancel'){
+              editPane.style.display = 'none';
+              window.__suppressRefresh = false;
+              return;
+            }
+            try{
+              b.disabled = true;
+              const name = editPane.querySelector('.prog-name')?.value || p.name;
+              const time = editPane.querySelector('.prog-time')?.value || null;
+              const pause = editPane.querySelector('.prog-pause')?.value;
+              const enabledProg = !!editPane.querySelector('.prog-enabled')?.checked;
+              const daysSel = Array.from(editPane.querySelectorAll('.days-grid input:checked')).map(i=>i.value);
+              const zonesSel = Array.from(editPane.querySelectorAll('.zones-grid input:checked')).map(i=>Number(i.value));
+              const payloadDays = daysSel.length ? daysSel : (daysList && daysList.length ? daysList : undefined);
+              const payloadZones = zonesSel.length ? zonesSel : (zonesList && zonesList.length ? zonesList : undefined);
+              const payload = {
+                program_id: p.program_id,
+                name: name,
+                time: time || undefined,
+                pause_minutes: (pause === '' ? undefined : Number(pause)),
+                days: payloadDays,
+                zones: payloadZones,
+              };
+              if(p.program_state !== null && p.program_state !== undefined){
+                payload.enabled = enabledProg;
+              }
+              const res = await apiPost('/api/programs/update', payload);
+              console.log('update_program', payload, res);
+              toast('Programma aggiornato');
+              window.__suppressRefresh = false;
+              await refresh(true);
+            }catch(e){
+              console.error(e);
+              toast('Errore salvataggio programma: ' + (e.message || e));
+            }finally{
+              window.__suppressRefresh = false;
+              b.disabled = false;
+            }
+          });
+        });
+
+        list.appendChild(prog);
+      });
+    }
+
+    async function refresh(force=false){
+      if(window.__suppressRefresh && !force) return;
+      try{
+        const legacy = await apiGet("/api/irrigazione/state");
+        setOnline(true);
+        renderWeather(legacy.weather);
+        renderSeasonalAdjust(legacy.manual_adjustment_entity, legacy.manual_adjustment, legacy.manual_adjustment_attrs);
+        wireSeasonalAdjust();
+        renderZones(legacy.zones, legacy.active_zone);
+        renderPrograms(legacy.programs_enabled, legacy.programs_enabled_entity, legacy.programs, legacy.zones);
+        el("rawHint").textContent = "";
+      } catch(e){
+        setOnline(false);
+        el("rawHint").textContent = "Dettaglio: " + e.message;
+      }
+    }
+
+    const refreshBtnEl = el("refreshBtn");
+    if(refreshBtnEl){
+      refreshBtnEl.addEventListener("click", ()=>refresh(true));
+    }
+    const stopAllBtnEl = el("stopAllBtn");
+    if(stopAllBtnEl){
+      stopAllBtnEl.addEventListener("click", async ()=>{
+        try{
+          stopAllBtnEl.disabled = true;
+          window.__optimisticZones = {};
+          window.__suppressRefresh = false;
+
+          // prova a fermare tutte le zone accese usando lo stato corrente
+          let stoppedCount = 0;
+          try{
+            const state = await apiGet('/api/irrigazione/state');
+            const activeZones = (state.zones || []).filter(z => {
+              if(z.is_on) return true;
+              const rem = (z.remaining_raw || '').toString();
+              if(rem && !['0','0:00','00:00','0:00:00','00:00:00'].includes(rem.trim())) return true;
+              const pctNum = Number(z.percent);
+              return !Number.isNaN(pctNum) && pctNum > 0;
+            });
+            for(const z of activeZones){
+              try{ await apiPost('/api/irrigazione/zone/stop', { zone_id: z.id, entity_id: z.switch || z.switch_entity || z.switch_entity_id }); stoppedCount++; }
+              catch(_e){ /* continua con le altre */ }
+            }
+          }catch(_){ /* se fallisce, andiamo comunque sullo stop_all */ }
+
+          // chiama comunque gli endpoint globali/legacy
+          try{ await apiPost('/api/irrigazione/stop_all', {}); }
+          catch(_){ await apiPost('/api/irrigazione/zone/stop_all', {}); }
+
+          toast(stoppedCount > 0 ? `STOP TUTTO (${stoppedCount} zone)` : 'STOP TUTTO');
+          setTimeout(()=>refresh(true), 300);
+        } catch(e){
+          toast('Errore STOP: ' + e.message);
+        } finally {
+          stopAllBtnEl.disabled = false;
+        }
+      });
+    }
+
+    refresh();
+    setInterval(refresh, 1200);
+    // NOTE: il gestore delegato ??????ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨ stato rimosso in favore di listener per-bottone
+
+    // --- UI enhancements: search, compact, collapse, export (persisted) ---
+    (function(){
+      const searchBox = el('searchBox');
+      const compactToggle = el('compactToggle');
+      const exportBtn = el('exportBtn');
+      const entitiesBtn = el('entitiesBtn');
+
+      const eventLogBtn = el("eventLogBtn");
+      const eventLogModal = el("eventLogModal");
+      const eventLogBody = el("eventLogBody");
+      const btnEventLogClose = el("btnEventLogClose");
+      const menuToggle = el("menuToggle");
+      const menuContent = el("menuContent");
+      const menuDropdown = menuToggle?.closest(".menu-dropdown");
+      let eventLogTimer = null;
+
+      const toggleMenu = () => {
+        if(!menuDropdown) return;
+        const next = menuDropdown.classList.toggle("open");
+        menuToggle?.setAttribute("aria-expanded", next ? "true" : "false");
+      };
+      const closeMenu = () => {
+        if(!menuDropdown || !menuDropdown.classList.contains("open")) return;
+        menuDropdown.classList.remove("open");
+        menuToggle?.setAttribute("aria-expanded", "false");
+      };
+      menuToggle?.addEventListener("click", (event)=>{ event.stopPropagation(); toggleMenu(); });
+      menuContent?.addEventListener("click", ()=> closeMenu());
+      document.addEventListener("click", (event)=>{ if(menuDropdown && !menuDropdown.contains(event.target)) closeMenu(); });
+
+      const formatVal = (value, depth = 0) => {
+        if(value === undefined || value === null) return "";
+        if(depth > 3) return "[Object]";
+        if(Array.isArray(value)){
+          return value.map(v => formatVal(v, depth + 1)).filter(Boolean).join(", ");
+        }
+        if(typeof value === "object"){
+          if(typeof value.name === "string" && value.name) return value.name;
+          if(typeof value.entity_id === "string" && value.entity_id) return value.entity_id;
+          const parts = Object.entries(value).map(([key, val]) => {
+            const formatted = formatVal(val, depth + 1);
+            return formatted ? `${key}: ${formatted}` : "";
+          }).filter(Boolean);
+          if(parts.length) return parts.join(", ");
+          return "[Object]";
+        }
+        return String(value);
+      };
+
+            const parseZoneIdFromDetail = (text) => {
+        if(!text) return "";
+        const normalized = String(text);
+        const match = normalized.match(/(?:zone_id|zoneId)\s*[:=]\s*(\d+)/i);
+        if(match) return match[1];
+        return "";
+      };
+
+      const extractZoneName = (value) => {
+        if(!value) return "";
+        if(typeof value === "object" && !Array.isArray(value)){
+          return formatVal(value.zone_name || value.zoneName || value.name || value.zone || value.label);
+        }
+        const normalized = String(value);
+        const match = normalized.match(/zone_name\s*[:=]\s*([^,]+)/i);
+        if(match) return match[1].trim();
+        return "";
+      };
+
+      const findZoneInText = (text) => {
+        if(!text) return "";
+        const normalized = formatVal(text);
+        const match = /(?:Zone|Zona)\\s*(\\d+)/i.exec(normalized);
+        if(match) return match[1];
+        return "";
+      };
+
+      const ensureZoneLookup = async () => {
+        const existing = window.__zoneLookup || {};
+        if (Object.keys(existing).length) return existing;
+        try {
+          const data = await apiGet("/api/irrigazione/state");
+          const zones = Array.isArray(data?.zones) ? data.zones : [];
+          const map = {};
+          zones.forEach(z => {
+            const zid = z?.id ?? z?.zone_id ?? z?.zoneId;
+            if (zid != null) {
+              map[String(zid)] = z.name || z.zone_name || z.zoneName || `Zona ${zid}`;
+            }
+          });
+          window.__zoneLookup = { ...existing, ...map };
+          return window.__zoneLookup;
+        } catch (_e) {
+          return existing;
+        }
+      };
+
+      const normalizeEvent = (ev) => {
+        const out = { ts:"", zone:"", action:"", detail:"" };
+        if(ev && typeof ev === "object"){
+          out.ts = ev.ts || ev.time || ev.timestamp || ev.when || "";
+          const zoneLookup = window.__zoneLookup || {};
+          const zoneName = formatVal(ev.zone_name || ev.zoneName || ev.zone_name_display || ev.zone || ev.name || ev.area);
+          const zoneIdRaw = ev.zone_id ?? ev.zoneId ?? ev.id ?? ev.zone_id_display;
+          const zoneId = zoneIdRaw != null ? formatVal(zoneIdRaw) : "";
+          const lookupZone = zoneIdRaw != null ? (zoneLookup[String(zoneIdRaw)] || zoneLookup[zoneId]) : "";
+          out.zone = zoneName || lookupZone || (zoneId ? `Zona ${zoneId}` : "");
+
+          if(!out.zone){
+            const detailName = extractZoneName(ev.details || ev.detail || ev.message || ev.msg || ev.text);
+            if(detailName){
+              out.zone = detailName;
+            }else{
+              const parsed = parseZoneIdFromDetail(ev.detail || ev.details || ev.message || ev.msg || ev.text);
+              if(parsed){
+                out.zone = zoneLookup[parsed] || `Zona ${parsed}`;
+              }else{
+                const fromMsg = findZoneInText(ev.message || ev.msg || ev.detail || ev.text || ev.event);
+                if(fromMsg){
+                  out.zone = zoneLookup[fromMsg] || `Zona ${fromMsg}`;
+                }
+              }
+            }
+          }
+
+          const rawAction = formatVal(ev.action || ev.state || ev.status || ev.event || ev.type || ev.message || ev.msg || ev.text);
+          const actStr = rawAction.trim();
+          if(actStr){
+            const low = actStr.toLowerCase();
+            if(low.includes("start")) out.action = "Start";
+            else if(low.includes("stop")) out.action = "Stop";
+            else out.action = actStr;
+          }
+
+          const switchName = formatVal(ev.switch_name || ev.switch || ev.switchName || ev.relay || ev.entity || ev.entity_id);
+          const prog = formatVal(ev.program_name || ev.program || ev.program_id || ev.programId);
+          const note = formatVal(ev.note || ev.detail || ev.details || ev.additional || ev.info);
+          const parts = [];
+          if(switchName) parts.push(switchName);
+          if(prog) parts.push(`Programma: ${prog}`);
+          if(note) parts.push(note);
+          if(!parts.length && ev.message) parts.push(formatVal(ev.message));
+          if(!parts.length && ev.msg) parts.push(formatVal(ev.msg));
+          if(!parts.length && ev.text) parts.push(formatVal(ev.text));
+          out.detail = parts.join(" | ");
+          return out;
+        }
+
+        if(typeof ev === "string"){
+          const s = ev.replace(/\s+/g, " ").trim();
+          const m = s.match(/^([0-9T:\-+.Z]+)\s*-\s*([^-]+?)\s*-\s*([^-]+?)(?:\s*-\s*(.+))?$/);
+          if(m){
+            out.ts = m[1];
+            out.zone = m[2];
+            out.action = m[3];
+            out.detail = m[4] || "";
+          }else{
+            out.detail = s;
+          }
+        }
+        return out;
+      };
+
+      const renderEventLog = (events) => {
+        if(!eventLogBody) return;
+        eventLogBody.innerHTML = "";
+        const rows = events.slice(-200).reverse().map(normalizeEvent);
+        if(!rows.length){
+          const tr = document.createElement("tr");
+          const td = document.createElement("td");
+          td.colSpan = 4;
+          td.textContent = "Nessun evento";
+          tr.appendChild(td);
+          eventLogBody.appendChild(tr);
+          return;
+        }
+        const frag = document.createDocumentFragment();
+        rows.forEach(r=>{
+          const tr = document.createElement("tr");
+          const cell = (v)=>{ const td = document.createElement("td"); td.textContent = v || "-"; return td; };
+          tr.append(cell(r.ts), cell(r.zone), cell(r.action || (r.detail ? "" : "-")), cell(r.detail || "-"));
+          frag.appendChild(tr);
+        });
+        eventLogBody.appendChild(frag);
+      };
+
+      async function loadEventLog(){
+        await ensureZoneLookup();
+        const data = await apiGet("/api/event_log");
+        const events = Array.isArray(data.events) ? data.events : [];
+        renderEventLog(events);
+      }
+
+      function openEventLog(){
+        if(!eventLogModal) return;
+        eventLogModal.classList.remove("eventlog-hidden");
+        loadEventLog();
+        if(eventLogTimer) clearInterval(eventLogTimer);
+        eventLogTimer = setInterval(loadEventLog, 2000);
+      }
+
+      function closeEventLog(){
+        if(!eventLogModal) return;
+        eventLogModal.classList.add("eventlog-hidden");
+        if(eventLogTimer) clearInterval(eventLogTimer);
+        eventLogTimer = null;
+      }
+
+      eventLogBtn?.addEventListener("click", openEventLog);
+      btnEventLogClose?.addEventListener("click", closeEventLog);
+      eventLogModal?.addEventListener("click", (e)=>{ if(e.target && e.target.id === "eventLogModal") closeEventLog(); });
+
+      const COMPACT_KEY = 'irrigazione.compact_v1';
+
+      // Load compact preference
+      if(compactToggle){
+        try{
+          const compact = localStorage.getItem(COMPACT_KEY) === '1';
+          if(compact) document.body.classList.add('compact');
+          compactToggle.classList.toggle('pill--active', compact);
+          compactToggle.addEventListener('click', ()=>{
+            const is = document.body.classList.toggle('compact');
+            localStorage.setItem(COMPACT_KEY, is ? '1' : '0');
+            toast(is ? 'Vista compatta' : 'Vista normale');
+          });
+        }catch(e){ console.warn('compact pref load failed', e) }
+      }
+
+      // Helper: apply search term to visible zones
+      function applySearchFilter(){
+        const q = (searchBox.value || '').trim().toLowerCase();
+        const cards = document.querySelectorAll('#zones .zone');
+        cards.forEach(card=>{
+          const name = (card.querySelector('.zone-name')?.textContent || '').toLowerCase();
+          card.style.display = (!q || name.includes(q)) ? '' : 'none';
+        });
+      }
+      if(searchBox) searchBox.addEventListener('input', ()=>{ applySearchFilter() });
+
+      // Export TXT button -> download api state
+      exportBtn?.addEventListener('click', async ()=>{
+        try{
+          exportBtn.disabled = true;
+          const data = await apiGet('/api/irrigazione/state');
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'irrigazione-state.txt';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          toast('Esportato TXT');
+        } catch(e){
+          toast('Export failed: ' + (e.message || e));
+        } finally { exportBtn.disabled = false; }
+      });
+
+      // Open entities debug page (port 1978)
+      entitiesBtn?.addEventListener('click', async ()=>{
+        try{
+          const opts = await apiGet('/api/options');
+          const ce = (opts && opts.bind_config_entry_id) ? String(opts.bind_config_entry_id) : '';
+          const u = new URL(window.location.href);
+          const host = u.hostname;
+          const protocol = u.protocol;
+          const target = ce
+            ? `${protocol}//${host}:1978/?config_entry=${encodeURIComponent(ce)}`
+            : `${protocol}//${host}:1978/`;
+          window.open(target, '_blank', 'noopener');
+        }catch(e){
+          const u = new URL(window.location.href);
+          window.open(`${u.protocol}//${u.hostname}:1978/`, '_blank', 'noopener');
+        }
+      });
+
+    })();
+    // --- end enhancements ---
+  </script>
+<script>
+(function(){
+  function _setText(id, text){
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.textContent = text;
+  }
+
+  function applyDeviceWeather(data){
+    if(!data) return;
+
+    if(data.humidity)   _setText('weatherHum',   (data.humidity.state ?? 'ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????')   + (data.humidity.unit||''));
+    if(data.pressure)   _setText('weatherPress', (data.pressure.state ?? 'ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????')   + (data.pressure.unit||''));
+    if(data.wind_speed) _setText('weatherWind',  (data.wind_speed.state ?? 'ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????') + (data.wind_speed.unit||''));
+    if(data.temperature){
+      const t = (data.temperature.state ?? 'ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????') + (data.temperature.unit||'');
+      _setText('weatherTemp', t);
+      _setText('weatherTempDetail', t);
+    }
+    if(data.condition && data.condition.state){
+      _setText('weatherCond', data.condition.state);
+      // aggiorna icona grande + piccola usando le funzioni gi??ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  presenti
+      if(typeof updateWeatherIconFromText === 'function') updateWeatherIconFromText();
+      if(typeof updateWeatherCard === 'function') updateWeatherCard();
+    }
+  }
+
+  function getDeviceIdFromUrl(){
+    const qs = new URLSearchParams(window.location.search);
+    return qs.get('device_id') || qs.get('owm_device_id') || qs.get('device');
+  }
+
+  async function fetchDeviceWeather(deviceId){
+    if(!deviceId) return;
+    try{
+      const res = await fetch(withKey('/api/device_weather?device_id=' + encodeURIComponent(deviceId)));
+      if(!res.ok) return;
+      const json = await res.json();
+      applyDeviceWeather(json);
+    }catch(e){
+      console.warn('fetchDeviceWeather', e);
+    }
+  }
+
+  async function init(){
+    // priorit??ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â : querystring -> /api/options
+    const fromUrl = getDeviceIdFromUrl();
+    if(fromUrl){
+      await fetchDeviceWeather(fromUrl);
+      setInterval(()=>fetchDeviceWeather(fromUrl), 5*60*1000);
+      return;
+    }
+
+    try{
+      const opts = await apiGet('/api/options');
+      const deviceId = opts.owm_device_id || opts.device_id || opts.device;
+      await fetchDeviceWeather(deviceId);
+      setInterval(()=>fetchDeviceWeather(deviceId), 5*60*1000);
+    }catch(e){
+      console.warn('options/device weather init failed', e);
+    }
+  }
+
+  init();
+})();
+</script>
+
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

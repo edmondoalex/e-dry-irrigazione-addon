@@ -1,0 +1,124 @@
+name: e-Dry Irrigazione
+slug: irrigazione_dashboard_v2
+version: "2.0.3"
+description: Dashboard e-Dry irrigazione su porta 1977 (auth none/basic/key + e_dry bind)
+startup: services
+boot: auto
+
+arch:
+  - amd64
+  - aarch64
+  - armv7
+
+hassio_api: true
+homeassistant_api: true
+
+ingress: true
+# usa porta fissa per ingress (allineata al servizio)
+ingress_port: 1977
+# webui resta per accesso diretto fuori ingress
+webui: "http://[HOST]:[PORT:1977]"
+panel_icon: mdi:sprinkler-variant
+panel_title: e-Dry Irrigazione
+panel_admin: false
+
+ports:
+  1977/tcp: 1977
+  1978/tcp: 1978
+
+options:
+  auth_mode: none
+  basic_user: ""
+  basic_pass: ""
+  access_key: ""
+  bind_config_entry_id: ""
+  entities_port: 1978
+  owm_device_id: ""
+  weather_entity: "weather.openweathermap"
+
+schema:
+  auth_mode: list(none|basic|key)
+  basic_user: str?
+  basic_pass: password?
+  access_key: password?
+  bind_config_entry_id: str?
+  entities_port: int?
+  owm_device_id: str?
+  weather_entity: str?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

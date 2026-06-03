@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Entita Irrigazione</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at 20% 20%, rgba(113,194,144,.35), transparent 35%),
+                  radial-gradient(circle at 80% 0%, rgba(6,176,111,.25), transparent 40%),
+                  #031c0d;
+      color: #ecffef;
+    }
+    main {
+      padding: 40px 0 60px;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .panel-inner {
+      width: min(1020px, 100%);
+      padding: 30px 36px 40px;
+      margin: 0;
+      box-sizing: border-box;
+      background: linear-gradient(180deg, rgba(4,49,24,.96), rgba(4,49,24,.9));
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.08);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+    }
+    .panel-inner > * {
+      width: 100%;
+    }
+    .table-wrap {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0;
+      overflow-x: auto;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(32px, 2.5vw, 40px);
+    }
+    .controls { margin-bottom: 10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    input { padding: 4px 6px; width: 420px; }
+    button { padding: 6px 10px; cursor: pointer; }
+    #entitiesCounter {
+      margin: 10px 0;
+      font-weight: 700;
+      width: 100%;
+      box-sizing: border-box;
+      color: #c5ffd6;
+    }
+    #error { color: #b00020; margin-top: 10px; white-space: pre-wrap; }
+    #info { color: #0b5; margin-top: 10px; white-space: pre-wrap; }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 0;
+      border-radius: 14px;
+      background: #01180d;
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+      table-layout: fixed;
+    }
+    thead, tbody, tr, th, td {
+      background: transparent;
+    }
+    th, td {
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      padding: 12px 14px;
+      text-align: left;
+      vertical-align: top;
+      color: #e3ffec;
+      word-break: break-word;
+    }
+    th {
+      background: rgba(3, 60, 25, 0.96);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: .08em;
+      border-bottom: 2px solid rgba(255,255,255,.25);
+    }
+    tr {
+      background: rgba(255,255,255,0);
+    }
+    tr:nth-child(odd) td {
+      background: rgba(255,255,255,.02);
+    }
+    tr:nth-child(even) td {
+      background: rgba(255,255,255,.01);
+    }
+
+    .rw { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .rw input[type="number"] { width: 120px; }
+    .rw select { min-width: 160px; }
+    .small { font-size: 12px; opacity: 0.8; }
+    .pill {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:12px;
+      background:linear-gradient(180deg, rgba(88,205,140,.85), rgba(35,120,67,.9));
+      color:#ebffef;
+      border:1px solid rgba(255,255,255,.24);
+      box-shadow:0 2px 5px rgba(0,0,0,.35);
+      letter-spacing: .02em;
+    }
+    /* Colorazione gruppi */
+    .header-programmi,
+    .header-parametri,
+    .header-meteo,
+    .header-statistiche,
+    .group-header {
+      background: linear-gradient(90deg, rgba(5,75,41,.8), rgba(4,42,23,.95));
+      font-weight: 700;
+      color: #ddffdf;
+      padding: 12px 14px;
+      border-left: 1px solid rgba(255,255,255,.08);
+      border-right: 1px solid rgba(255,255,255,.08);
+    }
+  </style>
+</head>
+<body>
+<main>
+<div class="panel-inner">
+<h1>Entita Irrigazione</h1>
+
+<div class="controls">
+  <label>
+    Config entry:
+    <input type="text" id="configEntryInput" placeholder="01KBJF6CJDEBKW1Z8TTEZ0XZ8C">
+  </label>
+  <button onclick="loadEntities(false)">Carica</button>
+  <button onclick="loadEntities(true)">Carica (debug)</button>
+</div>
+
+<div id="entitiesCounter">
+  Entita trovate: <span id="entitiesCount">0</span>
+  <span class="pill" id="rwCountPill" style="margin-left:10px;">R/W: 0</span>
+</div>
+
+<div id="error"></div>
+<div id="info"></div>
+
+<div class="table-wrap">
+<table id="entitiesTable">
+  <thead>
+    <tr>
+      <th>Ruolo</th>
+      <th>Entity ID</th>
+      <th>Nome</th>
+      <th>Dominio</th>
+      <th>Stato</th>
+      <th>Controlli (R/W)</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+</div>
+
+</div>
+</main>
+
+<script>
+  function getQueryParam(name) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(name) || "";
+  }
+
+  function setText(id, txt) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = txt || "";
+  }
+
+  function domainOf(entityId) {
+    return (entityId && entityId.includes(".")) ? entityId.split(".")[0] : "";
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? "")
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+  }
+
+  function isWritableDomain(domain) {
+    return ["switch","number","input_number","select","input_select","text","input_text","button"].includes(domain);
+  }
+
+  function updateCounts(entities) {
+    document.getElementById("entitiesCount").textContent = Array.isArray(entities) ? entities.length : 0;
+    const rw = (entities || []).filter(e => isWritableDomain(domainOf(e.entity_id))).length;
+    document.getElementById("rwCountPill").textContent = `R/W: ${rw}`;
+  }
+
+  async function callSetService(entity_id, domain, payload) {
+    const res = await fetch("/api/entity/set", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ entity_id, domain, ...payload })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.detail || data?.error || `HTTP ${res.status}`);
+    return data;
+  }
+
+  function makeControlsCell(ent) {
+    const entity_id = ent.entity_id || "";
+    const domain = domainOf(entity_id);
+    const attrs = ent.attributes || {};
+    const state = ent.state;
+
+    const wrap = document.createElement("div");
+    wrap.className = "rw";
+
+    if (!isWritableDomain(domain)) {
+      wrap.innerHTML = `<span class="small">—</span>`;
+      return wrap;
+    }
+
+    if (domain === "switch") {
+      const chk = document.createElement("input");
+      chk.type = "checkbox";
+      chk.checked = (state === "on");
+      chk.addEventListener("change", async () => {
+        try {
+          setText("error","");
+          setText("info", `Invio ${chk.checked ? "ON" : "OFF"} a ${entity_id}...`);
+          await callSetService(entity_id, domain, { action: chk.checked ? "turn_on" : "turn_off" });
+          setText("info", `OK: ${entity_id}`);
+        } catch (e) {
+          setText("info","");
+          setText("error", `Errore su ${entity_id}: ${e.message}`);
+          chk.checked = !chk.checked;
+        }
+      });
+      wrap.appendChild(chk);
+      return wrap;
+    }
+
+    if (domain === "button") {
+      const btn = document.createElement("button");
+      btn.textContent = "Premi";
+      btn.addEventListener("click", async () => {
+        try {
+          setText("error","");
+          setText("info", `Press su ${entity_id}...`);
+          await callSetService(entity_id, domain, { action: "press" });
+          setText("info", `OK: ${entity_id}`);
+        } catch (e) {
+          setText("info","");
+          setText("error", `Errore su ${entity_id}: ${e.message}`);
+        }
+      });
+      wrap.appendChild(btn);
+      return wrap;
+    }
+
+    if (domain === "number" || domain === "input_number") {
+      const min = (attrs.min ?? attrs.minimum ?? null);
+      const max = (attrs.max ?? attrs.maximum ?? null);
+      const step = (attrs.step ?? null);
+
+      const inp = document.createElement("input");
+      inp.type = "number";
+      inp.value = (state !== "unknown" && state !== "unavailable") ? state : "";
+      if (min !== null) inp.min = min;
+      if (max !== null) inp.max = max;
+      if (step !== null) inp.step = step;
+
+      const btn = document.createElement("button");
+      btn.textContent = "Set";
+      btn.addEventListener("click", async () => {
+        try {
+          setText("error","");
+          const v = inp.value;
+          setText("info", `Set ${entity_id} = ${v}...`);
+          await callSetService(entity_id, domain, { action: "set_value", value: v });
+          setText("info", `OK: ${entity_id} = ${v}`);
+        } catch (e) {
+          setText("info","");
+          setText("error", `Errore su ${entity_id}: ${e.message}`);
+        }
+      });
+
+      wrap.appendChild(inp);
+      wrap.appendChild(btn);
+      return wrap;
+    }
+
+    if (domain === "select" || domain === "input_select") {
+      const options = attrs.options || [];
+      const sel = document.createElement("select");
+      options.forEach(opt => {
+        const o = document.createElement("option");
+        o.value = opt;
+        o.textContent = opt;
+        if (opt === state) o.selected = true;
+        sel.appendChild(o);
+      });
+
+      const btn = document.createElement("button");
+      btn.textContent = "Set";
+      btn.addEventListener("click", async () => {
+        try {
+          setText("error","");
+          const v = sel.value;
+          setText("info", `Select ${entity_id} = ${v}...`);
+          await callSetService(entity_id, domain, { action: "select_option", value: v });
+          setText("info", `OK: ${entity_id} = ${v}`);
+        } catch (e) {
+          setText("info","");
+          setText("error", `Errore su ${entity_id}: ${e.message}`);
+        }
+      });
+
+      wrap.appendChild(sel);
+      wrap.appendChild(btn);
+      return wrap;
+    }
+
+    if (domain === "text" || domain === "input_text") {
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.value = (state !== "unknown" && state !== "unavailable") ? state : "";
+      inp.style.width = "240px";
+
+      const btn = document.createElement("button");
+      btn.textContent = "Set";
+      btn.addEventListener("click", async () => {
+        try {
+          setText("error","");
+          const v = inp.value;
+          setText("info", `Text ${entity_id} = ${v}...`);
+          await callSetService(entity_id, domain, { action: "set_value", value: v });
+          setText("info", `OK: ${entity_id}`);
+        } catch (e) {
+          setText("info","");
+          setText("error", `Errore su ${entity_id}: ${e.message}`);
+        }
+      });
+
+      wrap.appendChild(inp);
+      wrap.appendChild(btn);
+      return wrap;
+    }
+
+    wrap.innerHTML = `<span class="small">Non supportato</span>`;
+    return wrap;
+  }
+
+  function renderEntities(entities) {
+    const tbody = document.querySelector("#entitiesTable tbody");
+    tbody.innerHTML = "";
+
+    const normalize = (ent) => {
+      const id = ent.entity_id || "";
+      const name = ent.attributes?.friendly_name || ent.name || ent.friendly_name || "";
+      return { raw: ent, entity_id: id, name: String(name), domain: domainOf(id), state: ent.state ?? "" };
+    };
+
+    const items = (entities || []).map(normalize);
+
+    // helper to extract zone number
+    function extractZoneNumber(ent) {
+      const id = (ent.entity_id || '').toLowerCase();
+      const name = (ent.name || '').toLowerCase();
+      const re = /(zona|zone|valvol|valv|valve|valvola)[\W_\-]*?(\d{1,2})/i;
+      let m = id.match(re) || name.match(re);
+      if (m && m[2]) return parseInt(m[2],10);
+      const num = (id.match(/\b(\d{1,2})\b/) || name.match(/\b(\d{1,2})\b/));
+      if (num && num[1]) return parseInt(num[1],10);
+      return null;
+    }
+
+    // Build zone groups and remaining
+    const zoneMap = {};
+    const remaining = [];
+    items.forEach(it => {
+      const z = extractZoneNumber(it);
+      if (z !== null) {
+        const key = `Zona ${z}`;
+        if (!zoneMap[key]) zoneMap[key] = [];
+        zoneMap[key].push(it);
+      } else {
+        remaining.push(it);
+      }
+    });
+
+    // Render zones first (preserve previous behavior)
+    const zoneKeysSorted = Object.keys(zoneMap).sort((a,b)=>{
+      const na = a.match(/Zona (\d+)/); const nb = b.match(/Zona (\d+)/);
+      if (na && nb) return parseInt(na[1],10)-parseInt(nb[1],10);
+      if (na) return -1; if (nb) return 1; return a.localeCompare(b);
+    });
+
+    zoneKeysSorted.forEach(k => {
+      const arr = zoneMap[k] || [];
+      const hr = document.createElement('tr');
+      const th = document.createElement('td');
+      th.colSpan = 6;
+      th.classList.add('group-header');
+      th.textContent = `${k} (${arr.length})`;
+      hr.appendChild(th);
+      tbody.appendChild(hr);
+
+      arr.sort((a,b)=> (a.entity_id||'').localeCompare(b.entity_id||''));
+      arr.forEach(ent => {
+        const tr = document.createElement('tr');
+        const tdRoleEmpty = document.createElement('td'); tdRoleEmpty.textContent = '';
+        const tdId = document.createElement('td'); tdId.textContent = ent.entity_id;
+        const tdName = document.createElement('td'); tdName.textContent = ent.name;
+        const tdDomain = document.createElement('td'); tdDomain.textContent = ent.domain;
+        const tdState = document.createElement('td'); tdState.innerHTML = `<span class="pill">${escapeHtml(ent.state)}</span>`;
+        const tdCtrl = document.createElement('td'); tdCtrl.appendChild(makeControlsCell(ent.raw || ent));
+        tr.appendChild(tdRoleEmpty); tr.appendChild(tdId); tr.appendChild(tdName); tr.appendChild(tdDomain); tr.appendChild(tdState); tr.appendChild(tdCtrl);
+        tbody.appendChild(tr);
+      });
+    });
+
+    // For remaining entities, apply colored category grouping
+    const progKeys = ['program', 'programma', 'programmi', 'schedule', 'automation', 'test_dry', 'prossima_irrigazione'];
+    const meteoKeys = ['meteo','weather','stato_meteo','piogg','rain','ragionamento_smart_calc','zone_disponibili'];
+    const statKeys  = ['irrigazione_oggi','irrigazione_settimana','irrigazione_mese','irrigazione_anno','irrigazione'];
+    const paramKeys = ['regolazione','fattore','ragionamento','stato_meteo_irrigazione','prossima_irrigazione','programmi_abilitati'];
+
+    const groups = { 'Programmi': [], 'Parametri tecnici': [], 'Meteo': [], 'Statistiche': [], 'Altro': [] };
+    remaining.forEach(it => {
+      const idl = it.entity_id.toLowerCase();
+      const nl = (it.name || '').toLowerCase();
+      if (progKeys.some(k => idl.includes(k) || nl.includes(k))) { groups['Programmi'].push(it); return; }
+      if (it.domain === 'sensor' && meteoKeys.some(k => idl.includes(k) || nl.includes(k))) { groups['Meteo'].push(it); return; }
+      if (statKeys.some(k => idl.includes(k) || nl.includes(k))) { groups['Statistiche'].push(it); return; }
+      if (paramKeys.some(k => idl.includes(k) || nl.includes(k))) { groups['Parametri tecnici'].push(it); return; }
+      groups['Altro'].push(it);
+    });
+
+    const headerClass = { 'Programmi':'header-programmi','Parametri tecnici':'header-parametri','Meteo':'header-meteo','Statistiche':'header-statistiche','Altro':'' };
+
+    const renderRow = (ent) => {
+      const tr = document.createElement('tr');
+      const tdRole = document.createElement('td'); tdRole.textContent = '';
+      const tdId = document.createElement('td'); tdId.textContent = ent.entity_id;
+      const tdName = document.createElement('td'); tdName.textContent = ent.name;
+      const tdDomain = document.createElement('td'); tdDomain.textContent = ent.domain;
+      const tdState = document.createElement('td'); tdState.innerHTML = `<span class="pill">${escapeHtml(ent.state)}</span>`;
+      const tdCtrl = document.createElement('td'); tdCtrl.appendChild(makeControlsCell(ent.raw || ent));
+      tr.appendChild(tdRole); tr.appendChild(tdId); tr.appendChild(tdName); tr.appendChild(tdDomain); tr.appendChild(tdState); tr.appendChild(tdCtrl);
+      return tr;
+    };
+
+    const renderGroup = (title, arr) => {
+      const hr = document.createElement('tr');
+      const th = document.createElement('td');
+      th.colSpan = 6;
+      th.classList.add(headerClass[title] || '', 'group-header');
+      th.textContent = `${title} (${arr.length})`;
+      hr.appendChild(th);
+      tbody.appendChild(hr);
+      arr.sort((a,b)=> (a.entity_id||'').localeCompare(b.entity_id||'')); arr.forEach(it => tbody.appendChild(renderRow(it)));
+    };
+
+    ['Programmi','Parametri tecnici','Meteo','Statistiche','Altro'].forEach(k => { if ((groups[k]||[]).length) renderGroup(k, groups[k]); });
+  }
+
+  // Render grouped response directly (server provides role mapping)
+  function renderGrouped(payload) {
+    const groups = payload?.groups || {};
+    const unassigned = payload?.unassigned || [];
+    const programs = payload?.programs || [];
+    const aggregates = payload?.aggregates || [];
+    const programGroups = payload?.program_groups || {};
+    const references = payload?.references || {};
+    const meta = payload?.meta || {};
+    const tbody = document.querySelector("#entitiesTable tbody");
+    tbody.innerHTML = "";
+
+    // Aggregated sensors (authoritative, from e_dry integration)
+    if (aggregates.length) {
+      const hr = document.createElement('tr');
+      const th = document.createElement('td');
+      th.colSpan = 6;
+      th.classList.add('header-meteo', 'group-header');
+      th.textContent = `Aggregati (${aggregates.length})`;
+      hr.appendChild(th);
+      tbody.appendChild(hr);
+
+      aggregates.forEach(ent => {
+        const tr = document.createElement('tr');
+        const tdRole = document.createElement('td'); tdRole.textContent = 'Aggregato';
+        const tdId = document.createElement('td'); tdId.textContent = ent.entity_id || '';
+        const tdName = document.createElement('td'); tdName.textContent = ent.name || '';
+        const tdDomain = document.createElement('td'); tdDomain.textContent = (ent.entity_id || '').split('.')[0] || '';
+        const tdState = document.createElement('td'); tdState.innerHTML = `<span class="pill">${escapeHtml(ent.state)}</span>`;
+        const tdCtrl = document.createElement('td'); tdCtrl.appendChild(makeControlsCell(ent));
+        tr.appendChild(tdRole); tr.appendChild(tdId); tr.appendChild(tdName); tr.appendChild(tdDomain); tr.appendChild(tdState); tr.appendChild(tdCtrl);
+        tbody.appendChild(tr);
+      });
+    }
+
+    const zonesInfoEntity = meta.zones_info_entity || 'sensor.e_dry_zones_info';
+    const programsInfoEntity = meta.programs_info_entity || 'sensor.e_dry_programs_info';
+    const meteoInfoEntity = meta.meteo_info_entity || 'sensor.e_dry_meteo_info';
+
+    const aggById = (eid) => (aggregates || []).find(a => a?.entity_id === eid) || null;
+    const zonesAgg = aggById(zonesInfoEntity);
+    const programsAgg = aggById(programsInfoEntity);
+    const meteoAgg = aggById(meteoInfoEntity);
+
+    const zonesDef = Array.isArray(zonesAgg?.attributes?.zones) ? zonesAgg.attributes.zones : [];
+    const zonesById = new Map();
+    zonesDef.forEach(z => { if (z && z.id != null) zonesById.set(String(z.id), z); });
+
+    // Meteo summary (aggregated sensor + referenced external entities)
+    if (meteoAgg) {
+      const hr = document.createElement('tr');
+      const th = document.createElement('td');
+      th.colSpan = 6;
+      th.className = 'header-meteo';
+      th.textContent = 'Meteo (aggregato)';
+      hr.appendChild(th);
+      tbody.appendChild(hr);
+
+      const status = meteoAgg?.attributes?.status || meteoAgg?.state || '';
+      const reason = meteoAgg?.attributes?.reason || '';
+      const isBlocking = meteoAgg?.attributes?.is_blocking;
+      const smartFactor = meteoAgg?.attributes?.smart_factor;
+      const manualAdj = meteoAgg?.attributes?.manual_adjustment_percent;
+
+      const tr = document.createElement('tr');
+      const tdRole = document.createElement('td'); tdRole.textContent = 'Meteo Info';
+      const tdId = document.createElement('td'); tdId.textContent = meteoAgg.entity_id || '';
+      const tdName = document.createElement('td'); tdName.textContent = meteoAgg.name || '';
+      const tdDomain = document.createElement('td'); tdDomain.textContent = (meteoAgg.entity_id || '').split('.')[0] || '';
+      const tdState = document.createElement('td');
+      tdState.innerHTML =
+        `<span class="pill">${escapeHtml(String(status))}</span>` +
+        (reason ? `<div class="small">${escapeHtml(reason)}</div>` : '') +
+        (isBlocking === undefined ? '' : `<div class="small">is_blocking: ${escapeHtml(String(isBlocking))}</div>`) +
+        (smartFactor === undefined ? '' : `<div class="small">smart_factor: ${escapeHtml(String(smartFactor))}</div>`) +
+        (manualAdj === undefined ? '' : `<div class="small">manual_adjustment_percent: ${escapeHtml(String(manualAdj))}</div>`);
+      const tdCtrl = document.createElement('td'); tdCtrl.innerHTML = `<span class="small">-</span>`;
+      tr.appendChild(tdRole); tr.appendChild(tdId); tr.appendChild(tdName); tr.appendChild(tdDomain); tr.appendChild(tdState); tr.appendChild(tdCtrl);
+      tbody.appendChild(tr);
+
+      const mrefs = Array.isArray(references?.meteo) ? references.meteo : [];
+      mrefs.forEach(ent => {
+        const tr = document.createElement('tr');
+        const tdRole = document.createElement('td'); tdRole.textContent = 'Meteo (ref)';
+        const tdId = document.createElement('td'); tdId.textContent = ent.entity_id || '';
+        const tdName = document.createElement('td'); tdName.textContent = ent.name || '';
+        const tdDomain = document.createElement('td'); tdDomain.textContent = (ent.entity_id || '').split('.')[0] || '';
+        const tdState = document.createElement('td'); tdState.innerHTML = `<span class="pill">${escapeHtml(ent.state)}</span>`;
+        const tdCtrl = document.createElement('td'); tdCtrl.appendChild(makeControlsCell(ent));
+        tr.appendChild(tdRole); tr.appendChild(tdId); tr.appendChild(tdName); tr.appendChild(tdDomain); tr.appendChild(tdState); tr.appendChild(tdCtrl);
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Programs summary (aggregated definitions)
+    const programsDef = Array.isArray(programsAgg?.attributes?.programs) ? programsAgg.attributes.programs : [];
+    if (programsAgg && programsDef.length) {
+      const hr = document.createElement('tr');
+      const th = document.createElement('td');
+      th.colSpan = 6;
+      th.classList.add('header-programmi', 'group-header');
+      th.textContent = `Programmi (aggregato) (${programsDef.length})`;
+      hr.appendChild(th);
+      tbody.appendChild(hr);
+
+      programsDef.forEach(p => {
+        const pid = p?.id;
+        const days = Array.isArray(p?.days) ? p.days : [];
+        const zones = Array.isArray(p?.zones) ? p.zones : [];
+        const zoneNames = zones.map(zid => zonesById.get(String(zid))?.name || `Zona ${zid}`);
+
+        const tr = document.createElement('tr');
+        const tdRole = document.createElement('td'); tdRole.textContent = `Programma ${pid ?? ''}`;
+        const tdId = document.createElement('td'); tdId.textContent = programsAgg.entity_id || '';
+        const tdName = document.createElement('td'); tdName.textContent = p?.name || '';
+        const tdDomain = document.createElement('td'); tdDomain.textContent = (programsAgg.entity_id || '').split('.')[0] || '';
+        const tdState = document.createElement('td');
+        tdState.innerHTML =
+          `<div><span class="pill">${escapeHtml(String(p?.enabled))}</span> <span class="small">time: ${escapeHtml(String(p?.time || ''))}</span></div>` +
+          `<div class="small">pause_minutes: ${escapeHtml(String(p?.pause_minutes ?? ''))}</div>` +
+          `<div class="small">days:<br>${days.map(d=>escapeHtml(String(d))).join('<br>') || '-'}</div>` +
+          `<div class="small">zones:<br>${zoneNames.map(n=>escapeHtml(String(n))).join('<br>') || '-'}</div>` +
+          `<div class="small">next_run: ${escapeHtml(String(p?.next_run ?? ''))}</div>` +
+          `<div class="small">progress_percent: ${escapeHtml(String(p?.progress_percent ?? ''))}</div>`;
+        const tdCtrl = document.createElement('td'); tdCtrl.innerHTML = `<span class="small">-</span>`;
+        tr.appendChild(tdRole); tr.appendChild(tdId); tr.appendChild(tdName); tr.appendChild(tdDomain); tr.appendChild(tdState); tr.appendChild(tdCtrl);
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Render zones with role rows as before
+    const keys = Object.keys(groups || {}).sort((a,b)=> parseInt(a, 10)-parseInt(b, 10));
+    keys.forEach(k => {
+      const z = groups[k];
+      const hr = document.createElement('tr');
+      const th = document.createElement('td');
+      th.colSpan = 6;
+      th.classList.add('group-header');
+      const zdef = zonesById.get(String(k));
+      const defTxt = zdef
+        ? `active=${String(!!zdef.active)} ignore_weather=${String(!!zdef.ignore_weather)} rem_s=${String(zdef.remaining_seconds ?? '')} base=${String(zdef.base_minutes ?? '')} config=${String(zdef.configured_duration ?? '')} smart=${String(zdef.smart_duration ?? '')} eff=${String(zdef.effective_duration ?? '')}`
+        : '';
+      th.innerHTML = `<div>Zona ${escapeHtml(String(k))} - ${escapeHtml(z.zone_name || '')}</div>` + (defTxt ? `<div class="small">${escapeHtml(defTxt)}</div>` : '');
+      hr.appendChild(th);
+      tbody.appendChild(hr);
+
+      const rolesOrder = ['switch','ignore_meteo','slider_duration','configured_duration','smart_duration','effective_duration','remaining','progress'];
+      const labels = {
+        'switch':'Switch della zona',
+        'ignore_meteo':'Ignora Meteo',
+        'slider_duration':'Durata (slider)',
+        'configured_duration':'Durata configurata',
+        'smart_duration':'Durata meteo',
+        'effective_duration':'Durata effettiva',
+        'remaining':'Remaining (s)',
+        'progress':'Progress (%)'
+      };
+
+      rolesOrder.forEach(role => {
+        const ent = (z.roles && z.roles[role]) || null;
+        const tr = document.createElement('tr');
+        const tdRole = document.createElement('td'); tdRole.textContent = labels[role] || role;
+        const tdId = document.createElement('td'); tdId.textContent = ent ? ent.entity_id : '';
+        const tdName = document.createElement('td'); tdName.textContent = ent ? ent.name : '';
+        const tdDomain = document.createElement('td'); tdDomain.textContent = ent ? (ent.entity_id || '').split('.')[0] : '';
+        const tdState = document.createElement('td'); tdState.innerHTML = ent ? `<span class="pill">${escapeHtml(ent.state)}</span>` : '';
+        const tdCtrl = document.createElement('td');
+        if (ent) {
+          tdCtrl.appendChild(makeControlsCell(ent));
+        } else {
+          tdCtrl.innerHTML = `<span class="small">-</span>`;
+        }
+        tr.appendChild(tdRole); tr.appendChild(tdId); tr.appendChild(tdName); tr.appendChild(tdDomain); tr.appendChild(tdState); tr.appendChild(tdCtrl);
+        tbody.appendChild(tr);
+      });
+    });
+
+    // Render program groups (grouped by program_id)
+    const progKeys = Object.keys(programGroups || {}).sort((a,b)=> parseInt(a)-parseInt(b));
+    progKeys.forEach(k => {
+      const pg = programGroups[k];
+      const members = pg?.members || [];
+      if (!members.length) return;
+      const hr = document.createElement('tr');
+      const th = document.createElement('td');
+      th.colSpan = 6;
+      th.className = 'header-programmi';
+      th.textContent = `Programma ${k} - ${(pg?.name || '').trim()} (${members.length})`;
+      hr.appendChild(th);
+      tbody.appendChild(hr);
+
+      members
+        .slice()
+        .sort((a,b)=> (a.entity_id||'').localeCompare(b.entity_id||''))
+        .forEach(ent => {
+          const tr = document.createElement('tr');
+          const tdRole = document.createElement('td'); tdRole.textContent = '';
+          const tdId = document.createElement('td'); tdId.textContent = ent.entity_id || '';
+          const tdName = document.createElement('td'); tdName.textContent = ent.name || '';
+          const tdDomain = document.createElement('td'); tdDomain.textContent = (ent.entity_id || '').split('.')[0] || '';
+          const tdState = document.createElement('td'); tdState.innerHTML = `<span class="pill">${escapeHtml(ent.state)}</span>`;
+          const tdCtrl = document.createElement('td'); tdCtrl.appendChild(makeControlsCell(ent));
+          tr.appendChild(tdRole); tr.appendChild(tdId); tr.appendChild(tdName); tr.appendChild(tdDomain); tr.appendChild(tdState); tr.appendChild(tdCtrl);
+          tbody.appendChild(tr);
+        });
+    });
+
+    // Helper to categorize entities into our colored groups
+    function categorizeList(list) {
+      const progKeys = ['program', 'programma', 'programmi', 'schedule', 'automation', 'test_dry', 'prossima_irrigazione'];
+      const meteoKeys = ['meteo','weather','stato_meteo','piogg','rain','ragionamento_smart_calc','zone_disponibili'];
+      const statKeys  = ['irrigazione_oggi','irrigazione_settimana','irrigazione_mese','irrigazione_anno','irrigazione'];
+      const paramKeys = ['regolazione','fattore','ragionamento','stato_meteo_irrigazione','prossima_irrigazione','programmi_abilitati'];
+
+      const groups = { 'Programmi': [], 'Parametri tecnici': [], 'Meteo': [], 'Statistiche': [], 'Altro': [] };
+      (list || []).forEach(ent => {
+        const idl = (ent.entity_id||'').toLowerCase();
+        const nl = (ent.name||'').toLowerCase();
+        if (progKeys.some(k => idl.includes(k) || nl.includes(k))) { groups['Programmi'].push(ent); return; }
+        if ((ent.entity_id||'').startsWith('sensor') && meteoKeys.some(k => idl.includes(k) || nl.includes(k))) { groups['Meteo'].push(ent); return; }
+        if (statKeys.some(k => idl.includes(k) || nl.includes(k))) { groups['Statistiche'].push(ent); return; }
+        if (paramKeys.some(k => idl.includes(k) || nl.includes(k))) { groups['Parametri tecnici'].push(ent); return; }
+        groups['Altro'].push(ent);
+      });
+      return groups;
+    }
+
+    // Render programs (use colored header)
+    const categorizedPrograms = categorizeList(programs || []);
+    const unassignedGroups = categorizeList(unassigned || []);
+    const headerClass = { 'Programmi':'header-programmi','Parametri tecnici':'header-parametri','Meteo':'header-meteo','Statistiche':'header-statistiche','Altro':'' };
+    function renderSimpleRow(ent) {
+      const tr = document.createElement('tr');
+      const tdRole = document.createElement('td'); tdRole.textContent = '';
+      const tdId = document.createElement('td'); tdId.textContent = ent.entity_id;
+      const tdName = document.createElement('td'); tdName.textContent = ent.name || '';
+      const tdDomain = document.createElement('td'); tdDomain.textContent = (ent.entity_id||'').split('.')[0] || '';
+      const tdState = document.createElement('td'); tdState.innerHTML = `<span class="pill">${escapeHtml(ent.state)}</span>`;
+      const tdCtrl = document.createElement('td'); tdCtrl.appendChild(makeControlsCell(ent));
+      tr.appendChild(tdRole); tr.appendChild(tdId); tr.appendChild(tdName); tr.appendChild(tdDomain); tr.appendChild(tdState); tr.appendChild(tdCtrl);
+      return tr;
+    }
+
+    // Merge programGroups and unassignedGroups into single category blocks, deduplicating by entity_id
+    const categories = ['Programmi','Parametri tecnici','Meteo','Statistiche','Altro'];
+    categories.forEach(k => {
+      const seen = new Set();
+      const merged = [];
+      (categorizedPrograms[k] || []).concat(unassignedGroups[k] || []).forEach(ent => {
+        if (!ent || !ent.entity_id) return;
+        if (!seen.has(ent.entity_id)) { seen.add(ent.entity_id); merged.push(ent); }
+      });
+      if (!merged.length) return;
+      const hr = document.createElement('tr'); const th = document.createElement('td'); th.colSpan = 6; th.className = headerClass[k] || ''; th.textContent = `${k} (${merged.length})`; hr.appendChild(th); tbody.appendChild(hr);
+      merged.sort((a,b)=> (a.entity_id||'').localeCompare(b.entity_id||'')); merged.forEach(e => tbody.appendChild(renderSimpleRow(e)));
+    });
+  }
+
+  async function loadEntities(debug=false) {
+    setText("error","");
+    setText("info","");
+
+      const configEntry = document.getElementById("configEntryInput").value.trim();
+      if (!configEntry) {
+        setText("error", "Inserisci un config_entry valido.");
+        updateCounts([]);
+        renderEntities([]);
+        return;
+      }
+
+    // Prefer grouped endpoint which is authoritative and returns role mapping per zone
+    const url = debug
+      ? `/api/entities_grouped?config_entry=${encodeURIComponent(configEntry)}&debug=1`
+      : `/api/entities_grouped?config_entry=${encodeURIComponent(configEntry)}`;
+
+    try {
+      const res = await fetch(url);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.detail || data?.error || `HTTP ${res.status}`);
+
+      if (data.groups) {
+        // compute unique entity count and R/W count from groups + programs + unassigned (+ aggregates/program_groups)
+        const ids = new Set();
+        Object.values(data.groups).forEach(g => { (g.members || []).forEach(m => ids.add(m)); });
+        (data.programs || []).forEach(p => ids.add(p.entity_id));
+        (data.unassigned || []).forEach(u => ids.add(u.entity_id));
+        (data.aggregates || []).forEach(a => a?.entity_id && ids.add(a.entity_id));
+        try{
+          Object.values(data.program_groups || {}).forEach(pg => { (pg.members || []).forEach(m => m?.entity_id && ids.add(m.entity_id)); });
+        }catch(_){}
+        try{
+          (data.references?.meteo || []).forEach(r => r?.entity_id && ids.add(r.entity_id));
+          (data.references?.physical_switches || []).forEach(r => r?.entity_id && ids.add(r.entity_id));
+        }catch(_){}
+        const count = ids.size;
+        let rw = 0;
+        ids.forEach(id => { if (isWritableDomain(domainOf(id))) rw++; });
+        // update counters directly
+        document.getElementById('entitiesCount').textContent = String(count);
+        document.getElementById('rwCountPill').textContent = `R/W: ${rw}`;
+
+        renderGrouped(data);
+        // quick visual debug: count ignore_meteo roles present and show in info
+        try {
+          let imCount = 0;
+          Object.values(data.groups || {}).forEach(g => { if (g.roles && g.roles.ignore_meteo) imCount++; });
+          const dbg = `groups=${Object.keys(data.groups).length}, programs=${(data.programs||[]).length}, unassigned=${(data.unassigned||[]).length}, ignore_meteo=${imCount}`;
+          if (debug) setText("info", `Debug: ${dbg}`);
+          else setText("info", `ignore_meteo trovati: ${imCount}`);
+        } catch (e) {
+          if (debug) setText("info", `Debug: groups=${Object.keys(data.groups).length}, programs=${(data.programs||[]).length}, unassigned=${(data.unassigned||[]).length}`);
+        }
+        return;
+      }
+
+      // fallback: if groups not present, try old format
+      const entities = Array.isArray(data)
+        ? data
+        : (data.filtered_entities || data.entities || []);
+
+      updateCounts(entities);
+      renderEntities(entities);
+
+      if (debug && !Array.isArray(data)) {
+        setText("info", `Debug: resolved_count=${data.resolved_count}, filtered_count=${data.filtered_count}`);
+      }
+    } catch (e) {
+      setText("error", "Errore nel caricamento entità: " + e.message);
+      updateCounts([]);
+      renderEntities([]);
+    }
+  }
+
+  
+  /* loadAllEntities removed - initial view uses grouped render from loadEntities() */
+
+window.addEventListener("DOMContentLoaded", async () => {
+    const ce = getQueryParam("config_entry");
+    if (ce) {
+      document.getElementById("configEntryInput").value = ce;
+      loadEntities(false);
+      return;
+    }
+
+    // Auto-fill from add-on options if available (bind_config_entry_id)
+    try {
+      const res = await fetch('/api/options');
+      const opts = await res.json().catch(() => ({}));
+      const bind = (opts && opts.bind_config_entry_id) ? String(opts.bind_config_entry_id) : '';
+      if (bind) {
+        document.getElementById("configEntryInput").value = bind;
+        loadEntities(false);
+      }
+    } catch (e) {
+      // ignore
+    }
+  });
+</script>
+
+</body>
+</html>

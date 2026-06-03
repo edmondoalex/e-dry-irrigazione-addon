@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+*.log
+*.err
+*.bak
+*.patched
+*.tmp
+*.zip
+.venv/
+.codex-write-test
+
+# Home Assistant runtime data
+irrigazione_dashboard_v2/data/
+irrigazione_dashboard_v2/web/_backup_*/
+irrigazione_dashboard_v2/web/_pgbackup/
+irrigazione_dashboard_v2/web/* - Copia*.html
+irrigazione_dashboard_v2/web/*.bak.*
+irrigazione_dashboard_v2/web/tmp_lines.txt
+irrigazione_dashboard_v2/web/pinegrow.json
