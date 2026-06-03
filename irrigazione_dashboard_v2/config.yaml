@@ -1,6 +1,6 @@
 name: e-Dry Irrigazione
 slug: irrigazione_dashboard_v2
-version: "10.0.4"
+version: "10.0.5"
 description: Dashboard e-Dry irrigazione su porta 1977 (auth none/basic/key + e_dry bind + e-SunMind meteo)
 startup: services
 boot: auto
@@ -31,6 +31,7 @@ options:
   basic_user: ""
   basic_pass: ""
   access_key: ""
+  admin_settings_password: ""
   bind_config_entry_id: ""
   entities_port: 1978
   e_sunmind_api_url: "http://192.168.3.24:1980/api/weather/irrigation"
@@ -40,6 +41,7 @@ schema:
   basic_user: str?
   basic_pass: password?
   access_key: password?
+  admin_settings_password: password?
   bind_config_entry_id: str?
   entities_port: int?
   e_sunmind_api_url: str?

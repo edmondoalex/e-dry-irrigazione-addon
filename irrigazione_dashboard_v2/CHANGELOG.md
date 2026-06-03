@@ -1,3 +1,8 @@
+## 10.0.5
+- Protetta la sezione `Tarature meteo` con password admin configurabile tramite `admin_settings_password`.
+- Rimossa dalla dashboard la modifica diretta delle entita fallback per evitare errori lato cliente.
+- Le entita fallback restano visibili solo come diagnostica; soglie e SmartCalc restano modificabili da admin.
+
 ## 10.0.4
 - Aggiunto popup `Tarature meteo` nella dashboard per vedere e modificare SmartCalc, endpoint e-SunMind, soglie pioggia/vento/gelo e sensori fallback.
 - Aggiunta API add-on `GET/POST /api/meteo/weather_settings` collegata al servizio component `e_dry.update_weather_settings`.

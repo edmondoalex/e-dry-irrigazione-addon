@@ -19,7 +19,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.0.4"
+VERSION = "10.0.5"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -53,6 +53,26 @@ def read_options():
 def _require_token():
     if not SUPERVISOR_TOKEN:
         return False, (jsonify({"error": "missing_supervisor_token", "detail": "SUPERVISOR_TOKEN non presente nell'addon"}), 500)
+    return True, None
+
+
+def _require_admin_settings(data=None):
+    opts = read_options()
+    expected = str(opts.get("admin_settings_password") or "").strip()
+    if not expected:
+        return False, (jsonify({
+            "version": VERSION,
+            "error": "admin_password_not_configured",
+            "detail": "Configura admin_settings_password nelle opzioni dell'add-on per usare le tarature meteo protette.",
+        }), 403)
+    provided = (
+        request.headers.get("X-Admin-Password")
+        or request.args.get("admin_password")
+        or ((data or {}).get("admin_password") if isinstance(data, dict) else None)
+        or ""
+    )
+    if str(provided) != expected:
+        return False, (jsonify({"version": VERSION, "error": "admin_password_invalid"}), 403)
     return True, None
 
 
@@ -1544,22 +1564,21 @@ def meteo_weather_settings():
     ok, err = _require_token()
     if not ok:
         return err
+    data = request.get_json(silent=True) or {}
+    ok, err = _require_admin_settings(data)
+    if not ok:
+        return err
     if request.method == 'GET':
         return jsonify({"version": VERSION, "ok": True, "settings": _weather_settings_from_meteo_sensor()})
 
-    data = request.get_json(silent=True) or {}
     allowed = {
         'enable_smart_calc',
         'esunmind_weather_api_url',
         'weather_max_age_seconds',
         'forecast_rain_skip_mm',
         'recent_rain_skip_mm',
-        'rain_sensor_entity_id',
         'rain_threshold',
-        'temp_sensor_entity_id',
         'min_temp',
-        'humidity_sensor_entity_id',
-        'wind_sensor_entity_id',
         'wind_threshold',
     }
     payload = {k: data.get(k) for k in allowed if k in data}

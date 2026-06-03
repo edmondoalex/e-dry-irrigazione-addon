@@ -11,3 +11,4 @@
 - Meteo migrato a e-SunMind: aggiunta opzione `e_sunmind_api_url`, dashboard alimentata da `/api/data`, fallback OpenWeather non piu usato.
 - Meteo irrigazione allineato al nuovo contratto e-SunMind `/api/weather/irrigation`; bump add-on a `10.0.3`.
 - Aggiunta gestione tarature meteo da dashboard: endpoint `/api/meteo/weather_settings`, popup UI e salvataggio tramite servizio component `e_dry.update_weather_settings`; bump add-on a `10.0.4`.
+- Protetta la sezione tarature meteo con `admin_settings_password`, rimossa modifica entita fallback dalla dashboard cliente; bump add-on a `10.0.5`.

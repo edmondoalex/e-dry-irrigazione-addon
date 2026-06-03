@@ -23,7 +23,7 @@ Debug e log
 - L'integrazione `e-dry` scrive inoltre i suoi debug in `config/custom_components/e-dry_irrigation/e_dry_debug.log`.
 
 Note
-- Versione corrente: `10.0.4`.
+- Versione corrente: `10.0.5`.
 
 Meteo
 - La dashboard legge i dati da e-SunMind tramite `e_sunmind_api_url`.
@@ -32,9 +32,11 @@ Meteo
 
 Tarature meteo
 - Dal menu della dashboard apri `Tarature meteo`.
+- La sezione e protetta da `admin_settings_password`, da configurare nelle opzioni dell'add-on.
 - La fonte primaria e l'endpoint e-SunMind `/api/weather/irrigation`.
 - I sensori mostrati come `fallback` vengono usati solo se e-SunMind non risponde o il dato non e fresco.
-- Puoi modificare SmartCalc, freschezza dato, soglie pioggia prevista/recente, vento, gelo e sensori fallback direttamente dall'add-on.
+- Puoi modificare SmartCalc, freschezza dato, soglie pioggia prevista/recente, vento e gelo direttamente dall'add-on.
+- Le entita fallback sono visibili solo come diagnostica e non sono modificabili dalla dashboard cliente.
 
 Se vuoi che prepari un pacchetto release pronto per essere distribuito (zip con changelog e README), dimmelo.
 

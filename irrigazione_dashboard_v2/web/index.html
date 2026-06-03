@@ -363,7 +363,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.0.4</span>
+        <span class="pill" id="addonVersion">v10.0.5</span>
       </div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex:1;justify-content:flex-end">
         <!-- input durata e ricerca nascosti ma presenti per compatibilitÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  logica -->
@@ -481,7 +481,7 @@
   <div id="weatherSettingsModal" class="eventlog-modal eventlog-hidden">
     <div class="eventlog-box weather-settings-box">
       <div class="eventlog-header">
-        <div>Tarature meteo e SmartCalc</div>
+        <div>Tarature meteo e SmartCalc - Admin</div>
         <button id="btnWeatherSettingsClose" class="icon">Chiudi</button>
       </div>
       <form id="weatherSettingsForm" class="weather-settings-form">
@@ -516,20 +516,7 @@
             <input id="ws_rain_threshold" type="number" min="0" max="100" step="0.1"/>
           </label>
         </div>
-        <div class="weather-settings-grid">
-          <label>Sensore pioggia fallback
-            <input id="ws_rain_sensor_entity_id" type="text"/>
-          </label>
-          <label>Sensore temperatura fallback
-            <input id="ws_temp_sensor_entity_id" type="text"/>
-          </label>
-          <label>Sensore umidita fallback
-            <input id="ws_humidity_sensor_entity_id" type="text"/>
-          </label>
-          <label>Sensore vento fallback
-            <input id="ws_wind_sensor_entity_id" type="text"/>
-          </label>
-        </div>
+        <div class="weather-settings-status" id="weatherSettingsFallbackInfo">I sensori fallback non sono modificabili da questa dashboard.</div>
         <div class="weather-settings-actions">
           <button type="button" id="weatherSettingsDefaults" class="icon">Default e-SunMind</button>
           <button type="submit" class="primary icon">Salva tarature</button>
@@ -622,14 +609,11 @@
       weather_max_age_seconds: 900,
       forecast_rain_skip_mm: 6,
       recent_rain_skip_mm: 4,
-      rain_sensor_entity_id: 'sensor.e_sunmind_weather_precip_1h_mm',
       rain_threshold: 0,
-      temp_sensor_entity_id: 'sensor.e_sunmind_weather_temp_c',
       min_temp: 5,
-      humidity_sensor_entity_id: 'sensor.e_sunmind_weather_humidity_pct',
-      wind_sensor_entity_id: 'sensor.e_sunmind_weather_wind_ms',
       wind_threshold: 20
     };
+    let weatherSettingsAdminPassword = sessionStorage.getItem('eDryWeatherAdminPassword') || '';
 
     function setWeatherSettingsForm(settings){
       const s = Object.assign({}, WEATHER_DEFAULTS, settings || {});
@@ -643,10 +627,6 @@
       setVal('ws_wind_threshold', s.wind_threshold);
       setVal('ws_min_temp', s.min_temp);
       setVal('ws_rain_threshold', s.rain_threshold);
-      setVal('ws_rain_sensor_entity_id', s.rain_sensor_entity_id);
-      setVal('ws_temp_sensor_entity_id', s.temp_sensor_entity_id);
-      setVal('ws_humidity_sensor_entity_id', s.humidity_sensor_entity_id);
-      setVal('ws_wind_sensor_entity_id', s.wind_sensor_entity_id);
       const status = el('weatherSettingsStatus');
       if(status){
         const mode = s.weather_mode || '-';
@@ -654,6 +634,10 @@
         const age = s.age_seconds == null ? '-' : `${Math.round(Number(s.age_seconds))}s`;
         const err = s.weather_api_error ? ` | errore: ${s.weather_api_error}` : '';
         status.textContent = `Fonte attiva: ${mode} | source: ${source} | age: ${age}${err}`;
+      }
+      const fallback = el('weatherSettingsFallbackInfo');
+      if(fallback){
+        fallback.textContent = `Fallback HA: pioggia ${s.rain_sensor_entity_id || '-'} | temperatura ${s.temp_sensor_entity_id || '-'} | umidita ${s.humidity_sensor_entity_id || '-'} | vento ${s.wind_sensor_entity_id || '-'}`;
       }
     }
 
@@ -669,21 +653,28 @@
         wind_threshold: num('ws_wind_threshold'),
         min_temp: num('ws_min_temp'),
         rain_threshold: num('ws_rain_threshold'),
-        rain_sensor_entity_id: txt('ws_rain_sensor_entity_id'),
-        temp_sensor_entity_id: txt('ws_temp_sensor_entity_id'),
-        humidity_sensor_entity_id: txt('ws_humidity_sensor_entity_id'),
-        wind_sensor_entity_id: txt('ws_wind_sensor_entity_id')
+        admin_password: weatherSettingsAdminPassword
       };
     }
 
     async function openWeatherSettings(){
       const modal = el('weatherSettingsModal');
       if(!modal) return;
+      if(!weatherSettingsAdminPassword){
+        const pwd = window.prompt('Password admin tarature meteo');
+        if(!pwd) return;
+        weatherSettingsAdminPassword = pwd;
+        sessionStorage.setItem('eDryWeatherAdminPassword', pwd);
+      }
       modal.classList.remove('eventlog-hidden');
       try{
-        const data = await apiGet('/api/meteo/weather_settings');
+        const data = await apiGet('/api/meteo/weather_settings?admin_password=' + encodeURIComponent(weatherSettingsAdminPassword));
         setWeatherSettingsForm(data.settings || {});
       }catch(e){
+        if(String(e.message || e).includes('admin_password')){
+          sessionStorage.removeItem('eDryWeatherAdminPassword');
+          weatherSettingsAdminPassword = '';
+        }
         toast('Errore tarature: ' + (e.message || e));
         setWeatherSettingsForm(WEATHER_DEFAULTS);
       }
