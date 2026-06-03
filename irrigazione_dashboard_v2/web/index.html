@@ -363,7 +363,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.0.1</span>
+        <span class="pill" id="addonVersion">v10.0.2</span>
       </div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex:1;justify-content:flex-end">
         <!-- input durata e ricerca nascosti ma presenti per compatibilitÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  logica -->
@@ -389,12 +389,12 @@
         <div class="weather-right">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <div>
-              <div style="font-size:18px;font-weight:700" id="weatherTemp">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????</div>
-              <div class="small" id="weatherCond">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????</div>
+              <div style="font-size:18px;font-weight:700" id="weatherTemp">-</div>
+              <div class="small" id="weatherCond">-</div>
             </div>
             <div style="text-align:right;min-width:110px">
               <div class="small">Temperatura</div>
-              <div id="weatherTempDetail" style="font-weight:700">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????</div>
+              <div id="weatherTempDetail" style="font-weight:700">-</div>
             </div>
           </div>
 
@@ -408,9 +408,9 @@
           </div>
 
           <div class="details" style="margin-top:8px">
-            <div class="weather-metric"><div class="small">Humidity</div><div id="weatherHum">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????</div></div>
-            <div class="weather-metric"><div class="small">Pressure</div><div id="weatherPress">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????</div></div>
-            <div class="weather-metric"><div class="small">Wind</div><div id="weatherWind">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????</div></div>
+            <div class="weather-metric"><div class="small">Humidity</div><div id="weatherHum">-</div></div>
+            <div class="weather-metric"><div class="small">Pressure</div><div id="weatherPress">-</div></div>
+            <div class="weather-metric"><div class="small">Wind</div><div id="weatherWind">-</div></div>
           </div>
 
           <div style="margin-top:8px">
@@ -444,7 +444,7 @@
           <input id="progEnabled" type="checkbox"/>
           <div>
             <div style="font-weight:700">Programmi abilitati</div>
-            <div class="small" id="progEntity">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????</div>
+            <div class="small" id="progEntity">-</div>
           </div>
         </div>
 
@@ -676,7 +676,7 @@
 
         const key = _chooseWeatherIconFromText(txt);
         iconEl.innerHTML = `<svg class="icon-svg" aria-hidden="true"><use href="#icon-${key}"></use></svg>`;
-        iconEl.title = txt ? ('Tempo: ' + txt.trim()) : 'Tempo: ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????';
+        iconEl.title = txt ? ('Tempo: ' + txt.trim()) : 'Tempo: -';
       }catch(e){ /* no-op */ }
     }
 
@@ -1055,7 +1055,7 @@
               try{
                 const entity = ignoreToggle.dataset.entity;
                 if(!entity){
-                  toast('Entit??ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  ignora meteo mancante');
+                  toast('Entita ignora meteo mancante');
                   ignoreToggle.checked = !ignoreToggle.checked;
                   return;
                 }
@@ -1160,9 +1160,9 @@
     function renderWeather(weather){
       // ordine come server: fattore, ragionamento, stato
       const w = weather || [];
-      el("w1").textContent = w[0]?.missing ? "missing" : (w[0]?.state ?? "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????");
-      el("w2").textContent = w[1]?.missing ? "missing" : (w[1]?.state ?? "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????");
-      el("w3").textContent = w[2]?.missing ? "missing" : (w[2]?.state ?? "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????");
+      el("w1").textContent = w[0]?.missing ? "missing" : (w[0]?.state ?? "-");
+      el("w2").textContent = w[1]?.missing ? "missing" : (w[1]?.state ?? "-");
+      el("w3").textContent = w[2]?.missing ? "missing" : (w[2]?.state ?? "-");
     }
 
     function renderPrograms(enabledState, enabledEntity, programs, zones){
@@ -1722,11 +1722,11 @@
   function applyDeviceWeather(data){
     if(!data) return;
 
-    if(data.humidity)   _setText('weatherHum',   (data.humidity.state ?? 'ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????')   + (data.humidity.unit||''));
-    if(data.pressure)   _setText('weatherPress', (data.pressure.state ?? 'ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????')   + (data.pressure.unit||''));
-    if(data.wind_speed) _setText('weatherWind',  (data.wind_speed.state ?? 'ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????') + (data.wind_speed.unit||''));
+    if(data.humidity)   _setText('weatherHum',   (data.humidity.state ?? '-')   + (data.humidity.unit||''));
+    if(data.pressure)   _setText('weatherPress', (data.pressure.state ?? '-')   + (data.pressure.unit||''));
+    if(data.wind_speed) _setText('weatherWind',  (data.wind_speed.state ?? '-') + (data.wind_speed.unit||''));
     if(data.temperature){
-      const t = (data.temperature.state ?? 'ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢??????') + (data.temperature.unit||'');
+      const t = (data.temperature.state ?? '-') + (data.temperature.unit||'');
       _setText('weatherTemp', t);
       _setText('weatherTempDetail', t);
     }
@@ -1738,15 +1738,9 @@
     }
   }
 
-  function getDeviceIdFromUrl(){
-    const qs = new URLSearchParams(window.location.search);
-    return qs.get('device_id') || qs.get('owm_device_id') || qs.get('device');
-  }
-
-  async function fetchDeviceWeather(deviceId){
-    if(!deviceId) return;
+  async function fetchDeviceWeather(){
     try{
-      const res = await fetch(withKey('/api/device_weather?device_id=' + encodeURIComponent(deviceId)));
+      const res = await fetch(withKey('/api/device_weather'));
       if(!res.ok) return;
       const json = await res.json();
       applyDeviceWeather(json);
@@ -1756,22 +1750,8 @@
   }
 
   async function init(){
-    // priorit??ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â : querystring -> /api/options
-    const fromUrl = getDeviceIdFromUrl();
-    if(fromUrl){
-      await fetchDeviceWeather(fromUrl);
-      setInterval(()=>fetchDeviceWeather(fromUrl), 5*60*1000);
-      return;
-    }
-
-    try{
-      const opts = await apiGet('/api/options');
-      const deviceId = opts.owm_device_id || opts.device_id || opts.device;
-      await fetchDeviceWeather(deviceId);
-      setInterval(()=>fetchDeviceWeather(deviceId), 5*60*1000);
-    }catch(e){
-      console.warn('options/device weather init failed', e);
-    }
+    await fetchDeviceWeather();
+    setInterval(()=>fetchDeviceWeather(), 5*60*1000);
   }
 
   init();

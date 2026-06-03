@@ -23,7 +23,12 @@ Debug e log
 - L'integrazione `e-dry` scrive inoltre i suoi debug in `config/custom_components/e-dry_irrigation/e_dry_debug.log`.
 
 Note
-- Versione corrente: `10.0.1`.
+- Versione corrente: `10.0.2`.
+
+Meteo
+- La dashboard legge i dati da e-SunMind tramite `e_sunmind_api_url`.
+- Default: `http://172.30.32.1:1980/api/data`.
+- Se l'URL non e raggiungibile, usa come fallback i sensori Home Assistant `sensor.e_sunmind_weather_*`.
 
 Se vuoi che prepari un pacchetto release pronto per essere distribuito (zip con changelog e README), dimmelo.
 

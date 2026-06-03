@@ -1,19 +1,10 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Irrigazione dashboard server (port 1977) - FIX ZONE + METEO
+Irrigazione dashboard server (port 1977).
 
-Questo file mantiene la logica di discovery/controllo zone (switch) e
-aggiunge un endpoint /api/device_weather robusto che NON usa endpoint HA
-inesistenti (niente /api/devices/<id>/entities, niente entity registry).
-
-Meteo strategy:
-- Se passi ?entity_id=weather.xxx => usa quello.
-- Altrimenti prova a trovare automaticamente weather.openweathermap (o simili)
-  leggendo /api/states.
-- Ultimo fallback: usa i sensori "openweathermap" trovati in /api/states.
-
-Compatibile con il tuo config.yaml attuale (auth_mode/basic/key, bind_config_entry_id, owm_device_id, entities_port).
+La dashboard usa il component e_dry per zone/programmi e usa e-SunMind
+come sorgente meteo unica tramite /api/device_weather.
 """
 
 import os
@@ -28,7 +19,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.0.1"
+VERSION = "10.0.2"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -48,6 +39,7 @@ SUPERVISOR_TOKEN = os.environ.get("SUPERVISOR_TOKEN", "")
 HEADERS = {"Authorization": f"Bearer {SUPERVISOR_TOKEN}", "Content-Type": "application/json"}
 
 EVENT_LOG_ENTITY = os.environ.get("EVENT_LOG_ENTITY", "sensor.e_dry_event_log")
+DEFAULT_ESUNMIND_API_URL = os.environ.get("E_SUNMIND_API_URL", "http://172.30.32.1:1980/api/data")
 
 
 def read_options():
@@ -1893,109 +1885,99 @@ def zone_rename_ws():
                     'updated_registry': False, 'diagnostics': diagnostics})
 
 
-# -------------------- METEO FIX (robusto, senza entity registry) --------------------
-def _pack_weather_from_weather_entity(state_obj, entity_id):
-    attrs = (state_obj or {}).get('attributes') or {}
-    out = {}
-    cond = (state_obj or {}).get('state')
-    if cond and cond not in ('unknown', 'unavailable'):
-        out['condition'] = {'entity_id': entity_id, 'state': cond}
+# -------------------- METEO e-SunMind --------------------
+def _is_valid_weather_value(value):
+    return value is not None and str(value).strip().lower() not in ("", "unknown", "unavailable", "none", "nan")
 
-    def add(key, attr, fallback_unit=''):
-        if attr in attrs and attrs.get(attr) is not None:
-            unit = fallback_unit
-            if key == 'temperature':
-                unit = attrs.get('temperature_unit') or attrs.get('unit_of_measurement') or fallback_unit
-            elif key == 'pressure':
-                unit = attrs.get('pressure_unit') or fallback_unit
-            elif key == 'wind_speed':
-                unit = attrs.get('wind_speed_unit') or fallback_unit
-            out[key] = {'entity_id': entity_id, 'state': attrs.get(attr), 'unit': unit}
 
-    add('temperature', 'temperature', 'Ã‚Â°C')
-    add('humidity', 'humidity', '%')
-    add('pressure', 'pressure', 'hPa')
-    add('wind_speed', 'wind_speed', 'km/h')
+def _add_weather_value(out, key, entity_id, value, unit=""):
+    if _is_valid_weather_value(value):
+        out[key] = {"entity_id": entity_id, "state": value, "unit": unit}
+
+
+def _pack_weather_from_esunmind_payload(payload):
+    weather = payload.get("weather") if isinstance(payload, dict) else {}
+    weather = weather if isinstance(weather, dict) else {}
+    norm = weather.get("normalized") if isinstance(weather.get("normalized"), dict) else {}
+    guard = payload.get("weather_guard") if isinstance(payload.get("weather_guard"), dict) else {}
+    station = payload.get("weather_station") if isinstance(payload.get("weather_station"), dict) else {}
+
+    out = {"source": "e-SunMind", "ok": bool(weather.get("ok", True))}
+    _add_weather_value(out, "temperature", "sensor.e_sunmind_weather_temp_c", norm.get("air_temperature_c"), "°C")
+    _add_weather_value(out, "humidity", "sensor.e_sunmind_weather_humidity_pct", norm.get("relative_humidity_pct"), "%")
+    _add_weather_value(out, "pressure", "sensor.e_sunmind_weather_pressure_hpa", norm.get("air_pressure_hpa"), "hPa")
+    _add_weather_value(out, "wind_speed", "sensor.e_sunmind_weather_wind_ms", norm.get("wind_speed_ms"), "m/s")
+    _add_weather_value(out, "rain_1h", "sensor.e_sunmind_weather_precip_1h_mm", norm.get("precipitation_next_1h_mm"), "mm")
+
+    cond = norm.get("symbol_code") or weather.get("provider") or guard.get("error")
+    if _is_valid_weather_value(cond):
+        out["condition"] = {"entity_id": "e_sunmind.api_data", "state": str(cond)}
+
+    guard_station = guard.get("station") if isinstance(guard.get("station"), dict) else {}
+    out["guard"] = {
+        "ok": guard.get("ok") if "ok" in guard else None,
+        "wind_alarm": bool(guard.get("wind_alarm")),
+        "rain_alarm": bool(guard.get("rain_alarm")),
+        "facade_rain_risk": bool(guard.get("facade_rain_risk")),
+        "severe_weather_alarm": bool(guard.get("severe_weather_alarm")),
+        "station_used": bool(guard_station.get("used")) if guard_station else bool(station.get("ok")),
+    }
     return out
 
 
-def _best_openweather_weather_entity(all_states):
-    prefer = {'weather.openweathermap', 'weather.openweathermapap', 'weather.openweather'}
-    for s in all_states:
-        if s.get('entity_id') in prefer:
-            return s
-    for s in all_states:
-        eid = (s.get('entity_id') or '')
-        if not eid.startswith('weather.'):
+def _fetch_esunmind_weather(opts):
+    url = str(opts.get("e_sunmind_api_url") or DEFAULT_ESUNMIND_API_URL).strip()
+    if not url:
+        return None
+    try:
+        r = requests.get(url, timeout=8)
+        if r.status_code >= 400:
+            return {"error": "e_sunmind_http_error", "status": r.status_code, "url": url}
+        payload = r.json() if r.text else {}
+        out = _pack_weather_from_esunmind_payload(payload if isinstance(payload, dict) else {})
+        out["url"] = url
+        return out
+    except Exception as e:
+        return {"error": "e_sunmind_request_failed", "detail": str(e), "url": url}
+
+
+def _weather_from_esunmind_entities():
+    out = {"source": "e-SunMind HA sensors"}
+    sensor_map = {
+        "temperature": ("sensor.e_sunmind_weather_temp_c", "°C"),
+        "humidity": ("sensor.e_sunmind_weather_humidity_pct", "%"),
+        "pressure": ("sensor.e_sunmind_weather_pressure_hpa", "hPa"),
+        "wind_speed": ("sensor.e_sunmind_weather_wind_ms", "m/s"),
+        "rain_1h": ("sensor.e_sunmind_weather_precip_1h_mm", "mm"),
+    }
+    for key, (eid, fallback_unit) in sensor_map.items():
+        st = ha_try_get_state(eid)
+        if not st:
             continue
-        attrs = s.get('attributes') or {}
-        fn = (attrs.get('friendly_name') or '').lower()
-        if 'openweather' in eid.lower() or 'open weather' in fn or 'openweather' in fn:
-            return s
-    return None
+        attrs = st.get("attributes") or {}
+        _add_weather_value(out, key, eid, st.get("state"), attrs.get("unit_of_measurement") or fallback_unit)
+    return out if any(k in out for k in sensor_map) else None
 
 
+# -------------------- METEO endpoint --------------------
 @app.route('/api/device_weather')
 def api_device_weather():
     ok, err = _require_token()
     if not ok:
         return err
 
-    # explicit entity_id
-    entity_id = request.args.get('entity_id')
-    if entity_id:
-        try:
-            s = ha_get_state(entity_id)
-        except Exception as e:
-            return jsonify({
-        "version": VERSION,'error': 'ha_request_failed', 'detail': str(e)}), 500
-        return jsonify(_pack_weather_from_weather_entity(s, entity_id))
-
-    # auto-detect from all states
-    try:
-        all_states = ha_get_states_all()
-    except Exception as e:
-        return jsonify({
-        "version": VERSION,'error': 'ha_request_failed', 'detail': str(e)}), 500
-
-    w = _best_openweather_weather_entity(all_states)
-    if w:
-        return jsonify(_pack_weather_from_weather_entity(w, w.get('entity_id')))
-
-    # fallback to sensors
-    out = {}
-    def set_once(k, v):
-        if k not in out:
-            out[k] = v
-
-    for s in all_states:
-        eid = (s.get('entity_id') or '')
-        if 'openweathermap' not in eid.lower():
-            continue
-        attrs = s.get('attributes') or {}
-        dc = (attrs.get('device_class') or '').lower()
-        unit = attrs.get('unit_of_measurement') or ''
-        state = s.get('state')
-        lname = eid.lower()
-
-        if dc == 'temperature' or 'temperature' in lname:
-            set_once('temperature', {'entity_id': eid, 'state': state, 'unit': unit})
-        elif dc == 'humidity' or 'humidity' in lname:
-            set_once('humidity', {'entity_id': eid, 'state': state, 'unit': unit})
-        elif dc == 'pressure' or 'pressure' in lname:
-            set_once('pressure', {'entity_id': eid, 'state': state, 'unit': unit})
-        elif 'wind_speed' in lname or ('wind' in lname and 'speed' in lname):
-            set_once('wind_speed', {'entity_id': eid, 'state': state, 'unit': unit})
-        elif 'condition' in lname or 'weather' in lname:
-            if state not in ('unknown', 'unavailable'):
-                set_once('condition', {'entity_id': eid, 'state': state})
-
-    if out:
+    opts = read_options()
+    out = _fetch_esunmind_weather(opts)
+    if out and not out.get("error") and any(k in out for k in ("temperature", "humidity", "pressure", "wind_speed", "rain_1h")):
         return jsonify(out)
 
-    return jsonify({
-        "version": VERSION,'error': 'no_weather_found'}), 200
+    fallback = _weather_from_esunmind_entities()
+    if fallback:
+        if out and out.get("error"):
+            fallback["api_error"] = out
+        return jsonify(fallback)
 
+    return jsonify({"version": VERSION, "error": "e_sunmind_weather_not_found", "api": out}), 200
 
 
 # --- Event log (read-only) ---
@@ -2051,9 +2033,6 @@ if __name__ == '__main__':
         port = 1977
     print(f"[Irrigazione] Flask listen port={port} (INGRESS_PORT={os.environ.get('INGRESS_PORT')}, PORT={os.environ.get('PORT')})")
     app.run(host='0.0.0.0', port=port)
-
-
-
 
 
 
