@@ -19,7 +19,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.0.5"
+VERSION = "10.0.6"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -1318,6 +1318,10 @@ def api_irrigazione_state():
         z['duration_configured'] = zi.get('configured_duration')
         z['duration_smart'] = zi.get('smart_duration')
         z['duration_effective'] = zi.get('effective_duration')
+        z['profile_id'] = zi.get('profile_id') or 'standard'
+        z['profile_name'] = zi.get('profile_name') or 'Standard'
+        z['profile_smart_multiplier'] = zi.get('profile_smart_multiplier')
+        z['profile_wind_sensitive'] = zi.get('profile_wind_sensitive')
 
         ign_val = _as_bool(zi.get('ignore_weather'))
         if ign_val is not None:
@@ -1559,6 +1563,26 @@ def _weather_settings_from_meteo_sensor():
     }
 
 
+def _zone_profiles_from_zones_sensor():
+    opts = read_options()
+    entity_id = opts.get('zones_info_entity') or 'sensor.e_dry_zones_info'
+    st = ha_try_get_state(entity_id)
+    attrs = (st or {}).get('attributes') or {}
+    profiles = attrs.get('zone_profiles') or []
+    zones = attrs.get('zones') or []
+    custom_profiles = []
+    builtin_ids = {'standard', 'erba', 'fiori', 'piante', 'orto', 'vasi', 'alberi'}
+    for profile in profiles:
+        if isinstance(profile, dict) and str(profile.get('id') or '') not in builtin_ids:
+            custom_profiles.append(profile)
+    return {
+        'entity_id': entity_id,
+        'profiles': profiles if isinstance(profiles, list) else [],
+        'custom_profiles': custom_profiles,
+        'zones': zones if isinstance(zones, list) else [],
+    }
+
+
 @app.route('/api/meteo/weather_settings', methods=['GET', 'POST'])
 def meteo_weather_settings():
     ok, err = _require_token()
@@ -1587,6 +1611,37 @@ def meteo_weather_settings():
     try:
         ha_call_service('e_dry', 'update_weather_settings', payload)
         return jsonify({"version": VERSION, "ok": True, "settings": _weather_settings_from_meteo_sensor()})
+    except Exception as e:
+        return jsonify({"version": VERSION, "error": str(e)}), 500
+
+
+@app.route('/api/irrigazione/zone_profiles', methods=['GET', 'POST'])
+def irrigazione_zone_profiles():
+    ok, err = _require_token()
+    if not ok:
+        return err
+    data = request.get_json(silent=True) or {}
+    ok, err = _require_admin_settings(data)
+    if not ok:
+        return err
+    if request.method == 'GET':
+        return jsonify({"version": VERSION, "ok": True, **_zone_profiles_from_zones_sensor()})
+
+    try:
+        if 'profiles' in data:
+            profiles = data.get('profiles')
+            if not isinstance(profiles, list):
+                return jsonify({"version": VERSION, "error": "profiles deve essere una lista"}), 400
+            ha_call_service('e_dry', 'update_zone_profiles', {'profiles': profiles})
+
+        if 'zone_id' in data and 'profile_id' in data:
+            zone_id = _safe_int(data.get('zone_id'))
+            profile_id = str(data.get('profile_id') or '').strip()
+            if zone_id is None or not profile_id:
+                return jsonify({"version": VERSION, "error": "zone_id e profile_id richiesti"}), 400
+            ha_call_service('e_dry', 'update_zone', {'zone_id': int(zone_id), 'profile_id': profile_id})
+
+        return jsonify({"version": VERSION, "ok": True, **_zone_profiles_from_zones_sensor()})
     except Exception as e:
         return jsonify({"version": VERSION, "error": str(e)}), 500
 @app.route('/api/irrigazione/zone/start', methods=['POST'])

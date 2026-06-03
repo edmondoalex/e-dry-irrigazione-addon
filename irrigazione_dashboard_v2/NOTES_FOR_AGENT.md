@@ -13,3 +13,4 @@ Ogni volta che fai modifiche a questo addon:
 - 2026-06-03: bump versione a `10.0.3`; `config.yaml`, `web/server.py` e `web/entities_server.py` ora usano `GET /api/weather/irrigation` di e-SunMind, campi meteo irrigazione normalizzati e conversione automatica del vecchio URL `/api/data`.
 - 2026-06-03: bump versione a `10.0.4`; aggiunti popup dashboard e API `/api/meteo/weather_settings` per vedere/modificare tarature meteo e SmartCalc dal componente e-Dry.
 - 2026-06-03: bump versione a `10.0.5`; protetta `Tarature meteo` con `admin_settings_password` e bloccata la modifica entita fallback dalla dashboard cliente.
+- 2026-06-03: bump versione a `10.0.6`; aggiunta sezione admin `Preset zone`, endpoint `/api/irrigazione/zone_profiles`, assegnazione preset per zona e creazione preset custom persistenti nel component e-Dry.

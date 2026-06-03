@@ -1,3 +1,9 @@
+## 10.0.6
+- Aggiunta sezione admin `Preset zone` dentro `Tarature meteo`.
+- Aggiunta API protetta `GET/POST /api/irrigazione/zone_profiles` per leggere preset, assegnarli alle zone e salvare preset custom.
+- Le assegnazioni e i preset custom vengono salvati dal component e-Dry tramite `e_dry.update_zone` e `e_dry.update_zone_profiles`, quindi restano persistenti dopo restart.
+- Le card zona mostrano il preset attivo e il moltiplicatore SmartCalc applicato.
+
 ## 10.0.5
 - Protetta la sezione `Tarature meteo` con password admin configurabile tramite `admin_settings_password`.
 - Rimossa dalla dashboard la modifica diretta delle entita fallback per evitare errori lato cliente.

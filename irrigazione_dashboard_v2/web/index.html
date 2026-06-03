@@ -363,7 +363,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.0.5</span>
+        <span class="pill" id="addonVersion">v10.0.6</span>
       </div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex:1;justify-content:flex-end">
         <!-- input durata e ricerca nascosti ma presenti per compatibilitÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  logica -->
@@ -517,6 +517,25 @@
           </label>
         </div>
         <div class="weather-settings-status" id="weatherSettingsFallbackInfo">I sensori fallback non sono modificabili da questa dashboard.</div>
+        <div class="zone-presets-admin">
+          <div class="zone-presets-title">Preset zone</div>
+          <div class="small">Assegna un comportamento a ogni zona. Le modifiche sono salvate nel component e-Dry.</div>
+          <div id="zonePresetList" class="zone-preset-list"></div>
+          <div class="zone-custom-preset">
+            <label>Nome preset custom
+              <input id="zp_custom_name" type="text" placeholder="es. Agrumi"/>
+            </label>
+            <label>Moltiplicatore SmartCalc
+              <input id="zp_custom_multiplier" type="number" min="0.2" max="2.5" step="0.05" value="1.00"/>
+            </label>
+            <label class="toggle weather-settings-toggle">
+              <input id="zp_custom_wind_sensitive" type="checkbox" checked/>
+              <span>Sensibile al vento</span>
+            </label>
+            <button type="button" id="zonePresetAdd" class="icon">Aggiungi preset custom</button>
+          </div>
+          <div id="zonePresetCustomList" class="weather-settings-status">Nessun preset custom.</div>
+        </div>
         <div class="weather-settings-actions">
           <button type="button" id="weatherSettingsDefaults" class="icon">Default e-SunMind</button>
           <button type="submit" class="primary icon">Salva tarature</button>
@@ -546,7 +565,14 @@
     .weather-settings-toggle{flex-direction:row!important;align-items:center}
     .weather-settings-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
     .weather-settings-status{font-size:12px;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px}
+    .zone-presets-admin{border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:12px;background:rgba(0,0,0,.12);display:flex;flex-direction:column;gap:10px}
+    .zone-presets-title{font-weight:800}
+    .zone-preset-list{display:grid;grid-template-columns:1fr;gap:8px}
+    .zone-preset-row{display:grid;grid-template-columns:minmax(120px,1fr) minmax(170px,240px);gap:10px;align-items:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px}
+    .zone-preset-row select{width:100%;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(0,0,0,.22);color:var(--txt);padding:9px}
+    .zone-custom-preset{display:grid;grid-template-columns:minmax(160px,1fr) minmax(120px,180px) minmax(130px,160px) auto;gap:8px;align-items:end}
     @media(max-width:700px){.weather-settings-grid{grid-template-columns:1fr}.weather-settings-box{margin:2vh 8px}}
+    @media(max-width:820px){.zone-custom-preset,.zone-preset-row{grid-template-columns:1fr}}
   </style>
 
 
@@ -614,6 +640,7 @@
       wind_threshold: 20
     };
     let weatherSettingsAdminPassword = sessionStorage.getItem('eDryWeatherAdminPassword') || '';
+    let zoneProfilesState = { profiles: [], custom_profiles: [], zones: [] };
 
     function setWeatherSettingsForm(settings){
       const s = Object.assign({}, WEATHER_DEFAULTS, settings || {});
@@ -657,6 +684,114 @@
       };
     }
 
+    async function loadZoneProfiles(){
+      const data = await apiGet('/api/irrigazione/zone_profiles?admin_password=' + encodeURIComponent(weatherSettingsAdminPassword));
+      zoneProfilesState = {
+        profiles: Array.isArray(data.profiles) ? data.profiles : [],
+        custom_profiles: Array.isArray(data.custom_profiles) ? data.custom_profiles : [],
+        zones: Array.isArray(data.zones) ? data.zones : []
+      };
+      renderZoneProfiles();
+    }
+
+    function renderZoneProfiles(){
+      const list = el('zonePresetList');
+      const customList = el('zonePresetCustomList');
+      if(!list) return;
+      list.innerHTML = '';
+      const profiles = zoneProfilesState.profiles || [];
+      const zones = zoneProfilesState.zones || [];
+      if(!zones.length){
+        const empty = document.createElement('div');
+        empty.className = 'weather-settings-status';
+        empty.textContent = 'Nessuna zona disponibile dal sensore e_dry_zones_info.';
+        list.appendChild(empty);
+      }
+      zones.forEach(zone=>{
+        const row = document.createElement('div');
+        row.className = 'zone-preset-row';
+        const label = document.createElement('div');
+        const name = document.createElement('b');
+        name.textContent = zone.name || `Zona ${zone.id}`;
+        const meta = document.createElement('div');
+        meta.className = 'small';
+        const mult = zone.profile_smart_multiplier == null ? '-' : Number(zone.profile_smart_multiplier).toFixed(2);
+        meta.textContent = `Attuale: ${zone.profile_name || zone.profile_id || 'Standard'} | x${mult}`;
+        label.append(name, meta);
+        const select = document.createElement('select');
+        select.dataset.zoneId = String(zone.id);
+        profiles.forEach(profile=>{
+          const opt = document.createElement('option');
+          opt.value = profile.id || '';
+          const pm = profile.smart_multiplier == null ? '1.00' : Number(profile.smart_multiplier).toFixed(2);
+          opt.textContent = `${profile.name || profile.id} (x${pm})`;
+          if(String(profile.id || '') === String(zone.profile_id || 'standard')) opt.selected = true;
+          select.appendChild(opt);
+        });
+        select.addEventListener('change', async ()=>{
+          try{
+            await apiPost('/api/irrigazione/zone_profiles', {
+              admin_password: weatherSettingsAdminPassword,
+              zone_id: Number(select.dataset.zoneId),
+              profile_id: select.value
+            });
+            toast('Preset zona salvato');
+            await loadZoneProfiles();
+            await refresh(true);
+          }catch(e){
+            toast('Errore preset zona: ' + (e.message || e));
+          }
+        });
+        row.append(label, select);
+        list.appendChild(row);
+      });
+
+      if(customList){
+        const custom = zoneProfilesState.custom_profiles || [];
+        customList.textContent = custom.length
+          ? custom.map(p=>`${p.name || p.id} (id ${p.id}, x${Number(p.smart_multiplier || 1).toFixed(2)})`).join(' | ')
+          : 'Nessun preset custom.';
+      }
+    }
+
+    async function addCustomZonePreset(){
+      const name = String(el('zp_custom_name')?.value || '').trim();
+      const mult = Number(el('zp_custom_multiplier')?.value);
+      const windSensitive = !!el('zp_custom_wind_sensitive')?.checked;
+      if(!name){
+        toast('Inserisci nome preset custom');
+        return;
+      }
+      if(!Number.isFinite(mult) || mult < 0.2 || mult > 2.5){
+        toast('Moltiplicatore fuori range');
+        return;
+      }
+      const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+      const existing = (zoneProfilesState.custom_profiles || []).filter(p=>String(p.id || '') !== id);
+      const existingIds = new Set(existing.map(p=>String(p.id || '')));
+      const builtinProfiles = (zoneProfilesState.profiles || []).filter(p=>!existingIds.has(String(p.id || '')) && !['standard','erba','fiori','piante','orto','vasi','alberi'].includes(String(p.id || '')));
+      const defaultProfiles = (zoneProfilesState.profiles || []).filter(p=>['standard','erba','fiori','piante','orto','vasi','alberi'].includes(String(p.id || '')));
+      existing.push({ id, name, smart_multiplier: mult, wind_sensitive: windSensitive });
+      try{
+        const data = await apiPost('/api/irrigazione/zone_profiles', {
+          admin_password: weatherSettingsAdminPassword,
+          profiles: existing
+        });
+        const returnedProfiles = Array.isArray(data.profiles) ? data.profiles : [];
+        const returnedCustom = Array.isArray(data.custom_profiles) ? data.custom_profiles : [];
+        zoneProfilesState = {
+          profiles: returnedProfiles.length >= defaultProfiles.length + existing.length ? returnedProfiles : defaultProfiles.concat(builtinProfiles, existing),
+          custom_profiles: returnedCustom.length >= existing.length ? returnedCustom : existing,
+          zones: Array.isArray(data.zones) ? data.zones : []
+        };
+        if(el('zp_custom_name')) el('zp_custom_name').value = '';
+        renderZoneProfiles();
+        toast('Preset custom salvato');
+      }catch(e){
+        toast('Errore preset custom: ' + (e.message || e));
+      }
+    }
+
     async function openWeatherSettings(){
       const modal = el('weatherSettingsModal');
       if(!modal) return;
@@ -670,6 +805,7 @@
       try{
         const data = await apiGet('/api/meteo/weather_settings?admin_password=' + encodeURIComponent(weatherSettingsAdminPassword));
         setWeatherSettingsForm(data.settings || {});
+        await loadZoneProfiles();
       }catch(e){
         if(String(e.message || e).includes('admin_password')){
           sessionStorage.removeItem('eDryWeatherAdminPassword');
@@ -978,6 +1114,8 @@
         const fmtMin = (v) => (v === null || v === undefined || v === false || Number.isNaN(Number(v))) ? "-" : `${Number(v).toFixed(1)} min`;
         const smartDisplay = fmtMin(smartVal);
         const effDisplay = fmtMin(effVal);
+        const profileName = z.profile_name || z.profile_id || 'Standard';
+        const profileMult = z.profile_smart_multiplier == null ? '-' : Number(z.profile_smart_multiplier).toFixed(2);
 
         const card = document.createElement("div");
         card.className = "zone" + (isOn ? " on" : "");
@@ -1027,6 +1165,7 @@
               <input type="checkbox" class="ignore-toggle" data-entity="${z.ignore_meteo_entity || ''}" ${z.ignore_meteo_state === 'on' ? 'checked' : ''} />
               <span>Ignora meteo</span>
             </label>
+            <div class="small">Preset: <b>${profileName}</b> ${profileMult === '-' ? '' : `<b>x${profileMult}</b>`}</div>
             <div class="small">Durata Smart Meteo: <b>${smartDisplay}</b></div>
             <div class="small">Durata Effettiva: <b>${effDisplay}</b></div>
           </div>
@@ -1582,6 +1721,12 @@
       const eventLogModal = el("eventLogModal");
       const eventLogBody = el("eventLogBody");
       const btnEventLogClose = el("btnEventLogClose");
+      const weatherSettingsBtn = el("weatherSettingsBtn");
+      const weatherSettingsModal = el("weatherSettingsModal");
+      const weatherSettingsDefaults = el("weatherSettingsDefaults");
+      const weatherSettingsForm = el("weatherSettingsForm");
+      const btnWeatherSettingsClose = el("btnWeatherSettingsClose");
+      const zonePresetAdd = el("zonePresetAdd");
       const menuToggle = el("menuToggle");
       const menuContent = el("menuContent");
       const menuDropdown = menuToggle?.closest(".menu-dropdown");
@@ -1786,6 +1931,7 @@
       btnWeatherSettingsClose?.addEventListener("click", closeWeatherSettings);
       weatherSettingsModal?.addEventListener("click", (e)=>{ if(e.target && e.target.id === "weatherSettingsModal") closeWeatherSettings(); });
       weatherSettingsDefaults?.addEventListener("click", ()=> setWeatherSettingsForm(WEATHER_DEFAULTS));
+      zonePresetAdd?.addEventListener("click", addCustomZonePreset);
       weatherSettingsForm?.addEventListener("submit", async (event)=>{
         event.preventDefault();
         try{
