@@ -673,7 +673,7 @@ def api_device_weather():
         return out
 
     opts = read_options()
-    url = str(opts.get("e_sunmind_api_url") or os.environ.get("E_SUNMIND_API_URL", "http://172.30.32.1:1980/api/data")).strip()
+    url = str(opts.get("e_sunmind_api_url") or os.environ.get("E_SUNMIND_API_URL", "http://192.168.3.24:1980/api/data")).strip()
     api_error = None
     if url:
         try:

@@ -39,7 +39,7 @@ SUPERVISOR_TOKEN = os.environ.get("SUPERVISOR_TOKEN", "")
 HEADERS = {"Authorization": f"Bearer {SUPERVISOR_TOKEN}", "Content-Type": "application/json"}
 
 EVENT_LOG_ENTITY = os.environ.get("EVENT_LOG_ENTITY", "sensor.e_dry_event_log")
-DEFAULT_ESUNMIND_API_URL = os.environ.get("E_SUNMIND_API_URL", "http://172.30.32.1:1980/api/data")
+DEFAULT_ESUNMIND_API_URL = os.environ.get("E_SUNMIND_API_URL", "http://192.168.3.24:1980/api/data")
 
 
 def read_options():

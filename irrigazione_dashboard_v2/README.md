@@ -27,7 +27,7 @@ Note
 
 Meteo
 - La dashboard legge i dati da e-SunMind tramite `e_sunmind_api_url`.
-- Default: `http://172.30.32.1:1980/api/data`.
+- Default: `http://192.168.3.24:1980/api/data`.
 - Se l'URL non e raggiungibile, usa come fallback i sensori Home Assistant `sensor.e_sunmind_weather_*`.
 
 Se vuoi che prepari un pacchetto release pronto per essere distribuito (zip con changelog e README), dimmelo.

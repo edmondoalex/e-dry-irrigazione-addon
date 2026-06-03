@@ -33,7 +33,7 @@ options:
   access_key: ""
   bind_config_entry_id: ""
   entities_port: 1978
-  e_sunmind_api_url: "http://172.30.32.1:1980/api/data"
+  e_sunmind_api_url: "http://192.168.3.24:1980/api/data"
 
 schema:
   auth_mode: list(none|basic|key)
