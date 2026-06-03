@@ -8,6 +8,7 @@ __pycache__/
 *.zip
 .venv/
 .codex-write-test
+_legacy_flat_backup_*/
 
 # Home Assistant runtime data
 irrigazione_dashboard_v2/data/
