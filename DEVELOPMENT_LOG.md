@@ -9,3 +9,4 @@
 - Corretto `restart_addon.sh` per usare la cartella reale `irrigazione_dashboard_v2` e lanciare `run.sh` dalla root dell'add-on.
 - Check globale: bump a `10.0.1`, versioni runtime allineate e riferimenti legacy corretti.
 - Meteo migrato a e-SunMind: aggiunta opzione `e_sunmind_api_url`, dashboard alimentata da `/api/data`, fallback OpenWeather non piu usato.
+- Meteo irrigazione allineato al nuovo contratto e-SunMind `/api/weather/irrigation`; bump add-on a `10.0.3`.

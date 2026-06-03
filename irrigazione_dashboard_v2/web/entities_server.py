@@ -16,7 +16,7 @@ from flask import Flask, request, jsonify, send_file
 import requests
 
 app = Flask(__name__)
-VERSION = "10.0.2"
+VERSION = "10.0.3"
 HERE = Path(__file__).resolve().parent
 INDEX_HTML = HERE / "entities_index.html"
 
@@ -658,22 +658,32 @@ def api_device_weather():
             out[key] = {"entity_id": entity_id, "state": value, "unit": unit}
 
     def _pack(payload):
-        weather = payload.get("weather") if isinstance(payload, dict) else {}
-        weather = weather if isinstance(weather, dict) else {}
-        norm = weather.get("normalized") if isinstance(weather.get("normalized"), dict) else {}
-        out = {"source": "e-SunMind", "ok": bool(weather.get("ok", True))}
-        _add(out, "temperature", "sensor.e_sunmind_weather_temp_c", norm.get("air_temperature_c"), "°C")
-        _add(out, "humidity", "sensor.e_sunmind_weather_humidity_pct", norm.get("relative_humidity_pct"), "%")
-        _add(out, "pressure", "sensor.e_sunmind_weather_pressure_hpa", norm.get("air_pressure_hpa"), "hPa")
-        _add(out, "wind_speed", "sensor.e_sunmind_weather_wind_ms", norm.get("wind_speed_ms"), "m/s")
-        _add(out, "rain_1h", "sensor.e_sunmind_weather_precip_1h_mm", norm.get("precipitation_next_1h_mm"), "mm")
-        cond = norm.get("symbol_code") or weather.get("provider")
+        payload = payload if isinstance(payload, dict) else {}
+        source = payload.get("source")
+        out = {
+            "source": "e-SunMind",
+            "ok": bool(payload.get("available", True)),
+            "weather_source": source,
+            "age_seconds": payload.get("age_seconds"),
+            "last_update": payload.get("last_update"),
+            "schema": payload.get("schema"),
+        }
+        _add(out, "temperature", "sensor.e_sunmind_irrigation_temperature_c", payload.get("temperature_c"), "°C")
+        _add(out, "humidity", "sensor.e_sunmind_irrigation_humidity_pct", payload.get("humidity_pct"), "%")
+        _add(out, "pressure", "sensor.e_sunmind_irrigation_pressure_hpa", payload.get("pressure_hpa"), "hPa")
+        _add(out, "wind_speed", "sensor.e_sunmind_irrigation_wind_speed_ms", payload.get("wind_speed_ms"), "m/s")
+        _add(out, "rain_rate", "sensor.e_sunmind_irrigation_rain_rate_mm_h", payload.get("rain_rate_mm_h"), "mm/h")
+        _add(out, "rain_24h", "sensor.e_sunmind_irrigation_rain_last_24h_mm", payload.get("rain_last_24h_mm"), "mm")
+        _add(out, "forecast_rain_24h", "sensor.e_sunmind_irrigation_forecast_rain_24h_mm", payload.get("forecast_rain_24h_mm"), "mm")
+        cond = payload.get("condition") or payload.get("weather_code") or payload.get("irrigation_weather_reason") or payload.get("error")
         if _valid(cond):
-            out["condition"] = {"entity_id": "e_sunmind.api_data", "state": str(cond)}
+            out["condition"] = {"entity_id": "e_sunmind.weather_irrigation", "state": str(cond)}
         return out
 
     opts = read_options()
-    url = str(opts.get("e_sunmind_api_url") or os.environ.get("E_SUNMIND_API_URL", "http://192.168.3.24:1980/api/data")).strip()
+    url = str(opts.get("e_sunmind_api_url") or os.environ.get("E_SUNMIND_API_URL", "http://192.168.3.24:1980/api/weather/irrigation")).strip()
+    if url.endswith("/api/data"):
+        url = url[:-len("/api/data")] + "/api/weather/irrigation"
     api_error = None
     if url:
         try:

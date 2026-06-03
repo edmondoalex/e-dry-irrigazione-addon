@@ -1,3 +1,9 @@
+## 10.0.3
+- `/api/device_weather` ora consuma il contratto normalizzato e-SunMind `GET /api/weather/irrigation`.
+- Aggiornati default `e_sunmind_api_url` e parser meteo per usare campi irrigazione gia normalizzati.
+- Se nelle opzioni add-on resta salvato il vecchio `/api/data`, viene convertito automaticamente a `/api/weather/irrigation`.
+- Allineati dashboard principale, server debug entita e badge versione a `10.0.3`.
+
 ## 10.0.2
 - Meteo dashboard migrato a e-SunMind tramite opzione `e_sunmind_api_url`.
 - `/api/device_weather` ora legge `/api/data` di e-SunMind e usa solo sensori HA `sensor.e_sunmind_weather_*` come fallback.

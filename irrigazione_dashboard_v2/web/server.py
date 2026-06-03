@@ -19,7 +19,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.0.2"
+VERSION = "10.0.3"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -39,7 +39,7 @@ SUPERVISOR_TOKEN = os.environ.get("SUPERVISOR_TOKEN", "")
 HEADERS = {"Authorization": f"Bearer {SUPERVISOR_TOKEN}", "Content-Type": "application/json"}
 
 EVENT_LOG_ENTITY = os.environ.get("EVENT_LOG_ENTITY", "sensor.e_dry_event_log")
-DEFAULT_ESUNMIND_API_URL = os.environ.get("E_SUNMIND_API_URL", "http://192.168.3.24:1980/api/data")
+DEFAULT_ESUNMIND_API_URL = os.environ.get("E_SUNMIND_API_URL", "http://192.168.3.24:1980/api/weather/irrigation")
 
 
 def read_options():
@@ -1896,37 +1896,52 @@ def _add_weather_value(out, key, entity_id, value, unit=""):
 
 
 def _pack_weather_from_esunmind_payload(payload):
-    weather = payload.get("weather") if isinstance(payload, dict) else {}
-    weather = weather if isinstance(weather, dict) else {}
-    norm = weather.get("normalized") if isinstance(weather.get("normalized"), dict) else {}
-    guard = payload.get("weather_guard") if isinstance(payload.get("weather_guard"), dict) else {}
-    station = payload.get("weather_station") if isinstance(payload.get("weather_station"), dict) else {}
+    payload = payload if isinstance(payload, dict) else {}
+    source = payload.get("source")
+    out = {
+        "source": "e-SunMind",
+        "ok": bool(payload.get("available", True)),
+        "weather_source": source,
+        "age_seconds": payload.get("age_seconds"),
+        "last_update": payload.get("last_update"),
+        "schema": payload.get("schema"),
+    }
+    _add_weather_value(out, "temperature", "sensor.e_sunmind_irrigation_temperature_c", payload.get("temperature_c"), "°C")
+    _add_weather_value(out, "humidity", "sensor.e_sunmind_irrigation_humidity_pct", payload.get("humidity_pct"), "%")
+    _add_weather_value(out, "pressure", "sensor.e_sunmind_irrigation_pressure_hpa", payload.get("pressure_hpa"), "hPa")
+    _add_weather_value(out, "wind_speed", "sensor.e_sunmind_irrigation_wind_speed_ms", payload.get("wind_speed_ms"), "m/s")
+    _add_weather_value(out, "rain_rate", "sensor.e_sunmind_irrigation_rain_rate_mm_h", payload.get("rain_rate_mm_h"), "mm/h")
+    _add_weather_value(out, "rain_24h", "sensor.e_sunmind_irrigation_rain_last_24h_mm", payload.get("rain_last_24h_mm"), "mm")
+    _add_weather_value(out, "forecast_rain_24h", "sensor.e_sunmind_irrigation_forecast_rain_24h_mm", payload.get("forecast_rain_24h_mm"), "mm")
 
-    out = {"source": "e-SunMind", "ok": bool(weather.get("ok", True))}
-    _add_weather_value(out, "temperature", "sensor.e_sunmind_weather_temp_c", norm.get("air_temperature_c"), "°C")
-    _add_weather_value(out, "humidity", "sensor.e_sunmind_weather_humidity_pct", norm.get("relative_humidity_pct"), "%")
-    _add_weather_value(out, "pressure", "sensor.e_sunmind_weather_pressure_hpa", norm.get("air_pressure_hpa"), "hPa")
-    _add_weather_value(out, "wind_speed", "sensor.e_sunmind_weather_wind_ms", norm.get("wind_speed_ms"), "m/s")
-    _add_weather_value(out, "rain_1h", "sensor.e_sunmind_weather_precip_1h_mm", norm.get("precipitation_next_1h_mm"), "mm")
-
-    cond = norm.get("symbol_code") or weather.get("provider") or guard.get("error")
+    cond = payload.get("condition") or payload.get("weather_code") or payload.get("irrigation_weather_reason") or payload.get("error")
     if _is_valid_weather_value(cond):
-        out["condition"] = {"entity_id": "e_sunmind.api_data", "state": str(cond)}
+        out["condition"] = {"entity_id": "e_sunmind.weather_irrigation", "state": str(cond)}
 
-    guard_station = guard.get("station") if isinstance(guard.get("station"), dict) else {}
     out["guard"] = {
-        "ok": guard.get("ok") if "ok" in guard else None,
-        "wind_alarm": bool(guard.get("wind_alarm")),
-        "rain_alarm": bool(guard.get("rain_alarm")),
-        "facade_rain_risk": bool(guard.get("facade_rain_risk")),
-        "severe_weather_alarm": bool(guard.get("severe_weather_alarm")),
-        "station_used": bool(guard_station.get("used")) if guard_station else bool(station.get("ok")),
+        "ok": bool(payload.get("available", False)),
+        "is_raining": bool(payload.get("is_raining")),
+        "rain_alarm": bool(payload.get("rain_block")),
+        "wind_alarm": bool(payload.get("wind_block")),
+        "freeze_block": bool(payload.get("freeze_block")),
+        "hot_day": bool(payload.get("hot_day")),
+        "dry_day": bool(payload.get("dry_day")),
+        "score": payload.get("irrigation_weather_score"),
+        "reason": payload.get("irrigation_weather_reason"),
+        "station_used": source == "local_station",
     }
     return out
 
 
-def _fetch_esunmind_weather(opts):
+def _resolve_esunmind_weather_url(opts):
     url = str(opts.get("e_sunmind_api_url") or DEFAULT_ESUNMIND_API_URL).strip()
+    if url.endswith("/api/data"):
+        return url[:-len("/api/data")] + "/api/weather/irrigation"
+    return url
+
+
+def _fetch_esunmind_weather(opts):
+    url = _resolve_esunmind_weather_url(opts)
     if not url:
         return None
     try:
