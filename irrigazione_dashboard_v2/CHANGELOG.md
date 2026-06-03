@@ -1,6 +1,7 @@
 ## 10.0.2
 - Meteo dashboard migrato a e-SunMind tramite opzione `e_sunmind_api_url`.
 - `/api/device_weather` ora legge `/api/data` di e-SunMind e usa solo sensori HA `sensor.e_sunmind_weather_*` come fallback.
+- Anche il server debug entita usa e-SunMind per `/api/device_weather`.
 - Rimossi dalla configurazione add-on i riferimenti legacy `owm_device_id` e `weather_entity`.
 - Ripuliti placeholder meteo corrotti nella UI.
 

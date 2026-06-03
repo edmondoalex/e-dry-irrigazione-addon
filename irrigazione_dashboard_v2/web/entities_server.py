@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Entities debug server for Irrigazione Dashboard (port 1978)
 
@@ -645,157 +645,68 @@ def api_entity_set():
 
 @app.route('/api/device_weather')
 def api_device_weather():
-    """Return weather values.
-
-    Works in two modes:
-      1) If query param device_id is provided, tries to infer weather entities from that device.
-      2) If device_id is missing, falls back to a weather.* entity (prefers weather.openweathermap if present).
-    """
-    device_id = request.args.get('device_id')
-
+    """Return weather values from e-SunMind."""
     ok, resp = _ha_require_token()
     if not ok:
         return resp
 
-    # Helper to read a HA state object
-    def _get_state(entity_id: str):
-        rr = requests.get(f"{HA_BASE}/api/states/{entity_id}", headers=HEADERS, timeout=20)
-        if rr.status_code >= 400:
-            return None
-        return rr.json()
+    def _valid(v):
+        return v is not None and str(v).strip().lower() not in ("", "unknown", "unavailable", "none", "nan")
 
-    # --- Mode 2: no device_id (Ingress-friendly) ---
-    if not device_id:
-        # Prefer a well-known entity if present
-        wx = _get_state('weather.openweathermap')
-        if wx is None:
-            # Discover first weather.* entity
-            try:
-                rr = requests.get(f"{HA_BASE}/api/states", headers=HEADERS, timeout=20)
-                if rr.status_code < 400:
-                    all_states = rr.json()
-                    for st in all_states:
-                        eid = st.get('entity_id', '')
-                        if eid.startswith('weather.'):
-                            wx = st
-                            break
-            except Exception:
-                wx = None
+    def _add(out, key, entity_id, value, unit=""):
+        if _valid(value):
+            out[key] = {"entity_id": entity_id, "state": value, "unit": unit}
 
-        if wx is None:
-            return jsonify({'error': 'weather_not_found'}), 404
+    def _pack(payload):
+        weather = payload.get("weather") if isinstance(payload, dict) else {}
+        weather = weather if isinstance(weather, dict) else {}
+        norm = weather.get("normalized") if isinstance(weather.get("normalized"), dict) else {}
+        out = {"source": "e-SunMind", "ok": bool(weather.get("ok", True))}
+        _add(out, "temperature", "sensor.e_sunmind_weather_temp_c", norm.get("air_temperature_c"), "°C")
+        _add(out, "humidity", "sensor.e_sunmind_weather_humidity_pct", norm.get("relative_humidity_pct"), "%")
+        _add(out, "pressure", "sensor.e_sunmind_weather_pressure_hpa", norm.get("air_pressure_hpa"), "hPa")
+        _add(out, "wind_speed", "sensor.e_sunmind_weather_wind_ms", norm.get("wind_speed_ms"), "m/s")
+        _add(out, "rain_1h", "sensor.e_sunmind_weather_precip_1h_mm", norm.get("precipitation_next_1h_mm"), "mm")
+        cond = norm.get("symbol_code") or weather.get("provider")
+        if _valid(cond):
+            out["condition"] = {"entity_id": "e_sunmind.api_data", "state": str(cond)}
+        return out
 
-        attrs = wx.get('attributes', {}) or {}
-        def _num(x):
-            try:
-                return float(x)
-            except Exception:
-                return x
-
-        payload = {
-            'condition': {'entity_id': wx.get('entity_id'), 'state': wx.get('state')},
-            'temperature': {'entity_id': wx.get('entity_id'), 'state': _num(attrs.get('temperature')), 'unit': attrs.get('temperature_unit') or '°C'},
-            'humidity': {'entity_id': wx.get('entity_id'), 'state': _num(attrs.get('humidity')), 'unit': '%'},
-            'pressure': {'entity_id': wx.get('entity_id'), 'state': _num(attrs.get('pressure')), 'unit': attrs.get('pressure_unit') or 'hPa'},
-            'wind_speed': {'entity_id': wx.get('entity_id'), 'state': _num(attrs.get('wind_speed')), 'unit': attrs.get('wind_speed_unit') or 'km/h'},
-        }
-        return jsonify(payload)
-
-    # --- Mode 1: device_id provided (legacy) ---
-    try:
-        r = requests.get(f"{HA_BASE}/api/devices/{device_id}/entities", headers=HEADERS, timeout=20)
-        if r.status_code >= 400:
-            return jsonify({'error': 'ha_request_failed', 'status': r.status_code, 'detail': r.text[:2000]}), 500
-        entities = r.json()
-    except Exception as e:
-        return jsonify({'error': 'ha_request_failed', 'detail': str(e)}), 500
-
-    # Keep the existing inference logic below (unchanged)
-
-    out = {}
-    def _set_key(k, val):
-        if k not in out:
-            out[k] = val
-
-    for ent in entities:
-        eid = ent.get('entity_id') or ent.get('id')
-        if not eid:
-            continue
+    opts = read_options()
+    url = str(opts.get("e_sunmind_api_url") or os.environ.get("E_SUNMIND_API_URL", "http://172.30.32.1:1980/api/data")).strip()
+    api_error = None
+    if url:
         try:
-            r = requests.get(f"{HA_BASE}/api/states/{eid}", headers=HEADERS, timeout=10)
-            if r.status_code >= 400:
-                continue
-            s = r.json()
-        except Exception:
-            continue
+            rr = requests.get(url, timeout=8)
+            if rr.status_code < 400:
+                out = _pack(rr.json() if rr.text else {})
+                out["url"] = url
+                if any(k in out for k in ("temperature", "humidity", "pressure", "wind_speed", "rain_1h")):
+                    return jsonify(out)
+            else:
+                api_error = {"error": "e_sunmind_http_error", "status": rr.status_code, "url": url}
+        except Exception as e:
+            api_error = {"error": "e_sunmind_request_failed", "detail": str(e), "url": url}
 
-        attrs = s.get('attributes') or {}
-        dc = (attrs.get('device_class') or '').lower()
-        lname = (eid or '').lower()
-        unit = attrs.get('unit_of_measurement') or attrs.get('unit') or ''
-        state = s.get('state')
-
-        if dc == 'temperature' or 'temperature' in lname or lname.endswith('_temp') or 'temp' in lname:
-            _set_key('temperature', {'entity_id': eid, 'state': state, 'unit': unit})
+    out = {"source": "e-SunMind HA sensors"}
+    for key, eid, unit in (
+        ("temperature", "sensor.e_sunmind_weather_temp_c", "°C"),
+        ("humidity", "sensor.e_sunmind_weather_humidity_pct", "%"),
+        ("pressure", "sensor.e_sunmind_weather_pressure_hpa", "hPa"),
+        ("wind_speed", "sensor.e_sunmind_weather_wind_ms", "m/s"),
+        ("rain_1h", "sensor.e_sunmind_weather_precip_1h_mm", "mm"),
+    ):
+        st = ha_get_state(eid)
+        if not st:
             continue
-        if dc == 'humidity' or 'humidity' in lname:
-            _set_key('humidity', {'entity_id': eid, 'state': state, 'unit': unit})
-            continue
-        if dc == 'pressure' or 'pressure' in lname:
-            _set_key('pressure', {'entity_id': eid, 'state': state, 'unit': unit})
-            continue
-        if dc in ('wind_speed', 'speed') or 'wind' in lname:
-            _set_key('wind_speed', {'entity_id': eid, 'state': state, 'unit': unit})
-            continue
-        if eid.startswith('weather.') or 'weather' in lname:
-            _set_key('condition', {'entity_id': eid, 'state': state, 'attributes': attrs})
-            continue
+        attrs = st.get("attributes") or {}
+        _add(out, key, eid, st.get("state"), attrs.get("unit_of_measurement") or unit)
+    if any(k in out for k in ("temperature", "humidity", "pressure", "wind_speed", "rain_1h")):
+        if api_error:
+            out["api_error"] = api_error
+        return jsonify(out)
 
-    return jsonify(out)
-
-# --- merged options helper (runtime overrides repo config.yaml) ---
-def read_options_merged():
-    out = {}
-    # runtime options persisted by the addon (supervisor options)
-    try:
-        with open('/data/options.json','r',encoding='utf-8') as f:
-            opts = json.load(f) or {}
-            if isinstance(opts, dict):
-                out.update(opts)
-    except Exception:
-        pass
-
-    # try reading repo-level config.yaml (fallback / documentation)
-    try:
-        cfg_path = HERE.parent.parent / 'config.yaml'
-        if cfg_path.exists():
-            try:
-                import yaml
-                with open(str(cfg_path),'r',encoding='utf-8') as f:
-                    cfg = yaml.safe_load(f) or {}
-                    if isinstance(cfg, dict):
-                        for k,v in cfg.items():
-                            if k not in out:
-                                out[k] = v
-            except Exception:
-                try:
-                    import re
-                    with open(str(cfg_path),'r',encoding='utf-8') as f:
-                        for line in f:
-                            m = re.match(r"^\s*(owm_device_id|device_id)\s*:\s*(\S+)", line)
-                            if m:
-                                k = m.group(1)
-                                v = m.group(2).strip().strip('"\'')
-                                if k not in out:
-                                    out[k] = v
-                except Exception:
-                    pass
-    except Exception:
-        pass
-    return out
-
-# make existing callers use the merged reader
-read_options = read_options_merged
+    return jsonify({"error": "e_sunmind_weather_not_found", "api": api_error}), 200
 
 @app.route('/api/options')
 def api_options():
@@ -808,3 +719,4 @@ def api_options():
 if __name__ == '__main__':
     port = int(os.environ.get('ENTITIES_PORT', os.environ.get('PORT', 1978)))
     app.run(host='0.0.0.0', port=port)
+
