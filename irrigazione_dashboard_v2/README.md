@@ -8,7 +8,7 @@ FunzionalitÃ  principali:
 - Supporto per mostrare valori di produzione/percentuali e durate
 
 Installazione e test
-1. Copia la cartella `irrigazione_dashboard` in `addons/local/` del tuo Home Assistant.
+1. Copia la cartella `irrigazione_dashboard_v2` in `addons/local/` del tuo Home Assistant.
 2. Vai in Supervisor â†’ Add-on Store â†’ My add-ons â†’ Irrigazione Dashboard e installa.
 3. Se usi il componente `e-dry`, imposta `bind_config_entry_id` nelle opzioni dell'add-on
    con il `config_entry_id` dell'integrazione (vedi le istruzioni UI nel changelog).
@@ -23,7 +23,7 @@ Debug e log
 - L'integrazione `e-dry` scrive inoltre i suoi debug in `config/custom_components/e-dry_irrigation/e_dry_debug.log`.
 
 Note
-- Non Ã¨ necessario incrementare la versione per applicare modifiche locali, ma Ã¨ stato giÃ  aggiornato a `2.0.1`.
+- Versione corrente: `10.0.1`.
 
 Se vuoi che prepari un pacchetto release pronto per essere distribuito (zip con changelog e README), dimmelo.
 

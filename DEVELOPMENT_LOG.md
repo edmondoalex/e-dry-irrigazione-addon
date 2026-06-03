@@ -7,3 +7,4 @@
 - Esclusi dati runtime, cache, log, backup locali e pacchetti zip tramite `.gitignore`.
 - Conservati i file sorgente essenziali: `config.yaml`, `Dockerfile`, `run.sh`, `web/`, immagini, README e changelog dell'add-on.
 - Corretto `restart_addon.sh` per usare la cartella reale `irrigazione_dashboard_v2` e lanciare `run.sh` dalla root dell'add-on.
+- Check globale: bump a `10.0.1`, versioni runtime allineate e riferimenti legacy corretti.

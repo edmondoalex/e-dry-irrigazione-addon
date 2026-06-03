@@ -1,3 +1,9 @@
+## 10.0.1
+- Bump versione add-on a `10.0.1`.
+- Allineate versioni tra manifest add-on, dashboard e server debug entita.
+- Aggiornati riferimenti installativi alla cartella `irrigazione_dashboard_v2`.
+- Aggiunto endpoint stats `/addons/irrigazione_dashboard_v2/stats`, mantenendo compatibilita col path legacy.
+
 ## 2.0.2
 - Aggiunto pulsante "Eventi" nella card Meteo (popup da sensor.e_dry_event_log).
 

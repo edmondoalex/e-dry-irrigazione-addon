@@ -28,7 +28,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "2.0.3"
+VERSION = "10.0.1"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -1755,12 +1755,13 @@ def discovery_debug():
         "version": VERSION,'bind_config_entry_id': opts.get('bind_config_entry_id'), 'discovered': zones})
 
 
+@app.route('/addons/irrigazione_dashboard_v2/stats')
 @app.route('/addons/local_irrigazione_dashboard/stats')
 def addon_stats_shim():
     return jsonify({
         "version": VERSION,
         'result': 'ok',
-        'addon': 'local_irrigazione_dashboard',
+        'addon': 'irrigazione_dashboard_v2',
         'running': True,
         'uptime_sec': int(time.time() - START_TS)
     })
@@ -2050,8 +2051,6 @@ if __name__ == '__main__':
         port = 1977
     print(f"[Irrigazione] Flask listen port={port} (INGRESS_PORT={os.environ.get('INGRESS_PORT')}, PORT={os.environ.get('PORT')})")
     app.run(host='0.0.0.0', port=port)
-
-
 
 
 
