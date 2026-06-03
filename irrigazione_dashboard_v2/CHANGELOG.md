@@ -1,3 +1,8 @@
+## 10.0.4
+- Aggiunto popup `Tarature meteo` nella dashboard per vedere e modificare SmartCalc, endpoint e-SunMind, soglie pioggia/vento/gelo e sensori fallback.
+- Aggiunta API add-on `GET/POST /api/meteo/weather_settings` collegata al servizio component `e_dry.update_weather_settings`.
+- Allineate versioni runtime add-on a `10.0.4`.
+
 ## 10.0.3
 - `/api/device_weather` ora consuma il contratto normalizzato e-SunMind `GET /api/weather/irrigation`.
 - Aggiornati default `e_sunmind_api_url` e parser meteo per usare campi irrigazione gia normalizzati.

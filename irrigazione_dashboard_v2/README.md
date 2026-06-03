@@ -23,12 +23,18 @@ Debug e log
 - L'integrazione `e-dry` scrive inoltre i suoi debug in `config/custom_components/e-dry_irrigation/e_dry_debug.log`.
 
 Note
-- Versione corrente: `10.0.3`.
+- Versione corrente: `10.0.4`.
 
 Meteo
 - La dashboard legge i dati da e-SunMind tramite `e_sunmind_api_url`.
 - Default: `http://192.168.3.24:1980/api/weather/irrigation`.
 - Se l'URL non e raggiungibile, usa come fallback i sensori Home Assistant `sensor.e_sunmind_weather_*`.
+
+Tarature meteo
+- Dal menu della dashboard apri `Tarature meteo`.
+- La fonte primaria e l'endpoint e-SunMind `/api/weather/irrigation`.
+- I sensori mostrati come `fallback` vengono usati solo se e-SunMind non risponde o il dato non e fresco.
+- Puoi modificare SmartCalc, freschezza dato, soglie pioggia prevista/recente, vento, gelo e sensori fallback direttamente dall'add-on.
 
 Se vuoi che prepari un pacchetto release pronto per essere distribuito (zip con changelog e README), dimmelo.
 

@@ -363,7 +363,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.0.3</span>
+        <span class="pill" id="addonVersion">v10.0.4</span>
       </div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex:1;justify-content:flex-end">
         <!-- input durata e ricerca nascosti ma presenti per compatibilitÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  logica -->
@@ -375,6 +375,7 @@
             <button id="exportBtn" title="Esporta JSON" class="icon" aria-label="Esporta JSON">Export</button>
             <button id="entitiesBtn" title="Apri debug entita (porta 1978)" class="icon" aria-label="Apri debug entita">Entita</button>
             <button id="eventLogBtn" title="Apri registro eventi" class="icon" aria-label="Apri registro eventi">Eventi</button>
+            <button id="weatherSettingsBtn" title="Tarature meteo e SmartCalc" class="icon" aria-label="Tarature meteo">Tarature meteo</button>
             <button class="primary icon" id="refreshBtn" aria-label="Aggiorna">Aggiorna</button>
             <button class="danger icon" id="stopAllBtn" aria-label="Ferma tutte le irrigazioni">STOP TUTTO</button>
           </div>
@@ -477,6 +478,66 @@
     </div>
   </div>
 
+  <div id="weatherSettingsModal" class="eventlog-modal eventlog-hidden">
+    <div class="eventlog-box weather-settings-box">
+      <div class="eventlog-header">
+        <div>Tarature meteo e SmartCalc</div>
+        <button id="btnWeatherSettingsClose" class="icon">Chiudi</button>
+      </div>
+      <form id="weatherSettingsForm" class="weather-settings-form">
+        <div class="weather-settings-status" id="weatherSettingsStatus">-</div>
+        <label class="toggle weather-settings-toggle">
+          <input id="ws_enable_smart_calc" type="checkbox"/>
+          <div>
+            <div style="font-weight:700">Abilita SmartCalc</div>
+            <div class="small">Usa meteo e-SunMind per adattare le durate.</div>
+          </div>
+        </label>
+        <label>Endpoint meteo e-SunMind
+          <input id="ws_esunmind_weather_api_url" type="text"/>
+        </label>
+        <div class="weather-settings-grid">
+          <label>Dato valido per max secondi
+            <input id="ws_weather_max_age_seconds" type="number" min="60" max="7200" step="60"/>
+          </label>
+          <label>Salta se pioggia prevista 24h >= mm
+            <input id="ws_forecast_rain_skip_mm" type="number" min="0" max="50" step="0.5"/>
+          </label>
+          <label>Salta se pioggia ultime 24h >= mm
+            <input id="ws_recent_rain_skip_mm" type="number" min="0" max="50" step="0.5"/>
+          </label>
+          <label>Soglia vento blocco km/h
+            <input id="ws_wind_threshold" type="number" min="0" max="100" step="0.5"/>
+          </label>
+          <label>Temperatura blocco gelo °C
+            <input id="ws_min_temp" type="number" min="-10" max="20" step="0.5"/>
+          </label>
+          <label>Soglia pioggia fallback mm
+            <input id="ws_rain_threshold" type="number" min="0" max="100" step="0.1"/>
+          </label>
+        </div>
+        <div class="weather-settings-grid">
+          <label>Sensore pioggia fallback
+            <input id="ws_rain_sensor_entity_id" type="text"/>
+          </label>
+          <label>Sensore temperatura fallback
+            <input id="ws_temp_sensor_entity_id" type="text"/>
+          </label>
+          <label>Sensore umidita fallback
+            <input id="ws_humidity_sensor_entity_id" type="text"/>
+          </label>
+          <label>Sensore vento fallback
+            <input id="ws_wind_sensor_entity_id" type="text"/>
+          </label>
+        </div>
+        <div class="weather-settings-actions">
+          <button type="button" id="weatherSettingsDefaults" class="icon">Default e-SunMind</button>
+          <button type="submit" class="primary icon">Salva tarature</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <style>
     .eventlog-hidden{display:none}
     .eventlog-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999}
@@ -489,6 +550,16 @@
     .eventlog-table th{position:sticky;top:0;background:rgba(15,42,31,.95);text-transform:uppercase;font-size:11px;letter-spacing:.06em}
     .eventlog-table tr:nth-child(odd) td{background:rgba(255,255,255,.02)}
     .eventlog-table tr:hover td{background:rgba(255,255,255,.05)}
+    .weather-settings-box{max-width:760px}
+    .weather-settings-form{padding:14px;display:flex;flex-direction:column;gap:12px}
+    .weather-settings-form label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--txt)}
+    .weather-settings-form input[type="text"],
+    .weather-settings-form input[type="number"]{width:100%;box-sizing:border-box;border:1px solid rgba(255,255,255,.14);border-radius:8px;background:rgba(0,0,0,.22);color:var(--txt);padding:10px}
+    .weather-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .weather-settings-toggle{flex-direction:row!important;align-items:center}
+    .weather-settings-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+    .weather-settings-status{font-size:12px;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px}
+    @media(max-width:700px){.weather-settings-grid{grid-template-columns:1fr}.weather-settings-box{margin:2vh 8px}}
   </style>
 
 
@@ -543,6 +614,83 @@
       try { data = JSON.parse(txt); } catch { data = { raw: txt }; }
       if(!res.ok) throw new Error((data && data.error) ? data.error : (txt || res.statusText));
       return data;
+    }
+
+    const WEATHER_DEFAULTS = {
+      enable_smart_calc: true,
+      esunmind_weather_api_url: 'http://192.168.3.24:1980/api/weather/irrigation',
+      weather_max_age_seconds: 900,
+      forecast_rain_skip_mm: 6,
+      recent_rain_skip_mm: 4,
+      rain_sensor_entity_id: 'sensor.e_sunmind_weather_precip_1h_mm',
+      rain_threshold: 0,
+      temp_sensor_entity_id: 'sensor.e_sunmind_weather_temp_c',
+      min_temp: 5,
+      humidity_sensor_entity_id: 'sensor.e_sunmind_weather_humidity_pct',
+      wind_sensor_entity_id: 'sensor.e_sunmind_weather_wind_ms',
+      wind_threshold: 20
+    };
+
+    function setWeatherSettingsForm(settings){
+      const s = Object.assign({}, WEATHER_DEFAULTS, settings || {});
+      const setVal = (id, value)=>{ const node = el(id); if(node) node.value = value ?? ''; };
+      const setChecked = (id, value)=>{ const node = el(id); if(node) node.checked = !!value; };
+      setChecked('ws_enable_smart_calc', s.enable_smart_calc);
+      setVal('ws_esunmind_weather_api_url', s.esunmind_weather_api_url);
+      setVal('ws_weather_max_age_seconds', s.weather_max_age_seconds);
+      setVal('ws_forecast_rain_skip_mm', s.forecast_rain_skip_mm);
+      setVal('ws_recent_rain_skip_mm', s.recent_rain_skip_mm);
+      setVal('ws_wind_threshold', s.wind_threshold);
+      setVal('ws_min_temp', s.min_temp);
+      setVal('ws_rain_threshold', s.rain_threshold);
+      setVal('ws_rain_sensor_entity_id', s.rain_sensor_entity_id);
+      setVal('ws_temp_sensor_entity_id', s.temp_sensor_entity_id);
+      setVal('ws_humidity_sensor_entity_id', s.humidity_sensor_entity_id);
+      setVal('ws_wind_sensor_entity_id', s.wind_sensor_entity_id);
+      const status = el('weatherSettingsStatus');
+      if(status){
+        const mode = s.weather_mode || '-';
+        const source = s.source || '-';
+        const age = s.age_seconds == null ? '-' : `${Math.round(Number(s.age_seconds))}s`;
+        const err = s.weather_api_error ? ` | errore: ${s.weather_api_error}` : '';
+        status.textContent = `Fonte attiva: ${mode} | source: ${source} | age: ${age}${err}`;
+      }
+    }
+
+    function getWeatherSettingsPayload(){
+      const num = (id)=>{ const v = Number(el(id)?.value); return Number.isFinite(v) ? v : 0; };
+      const txt = (id)=> String(el(id)?.value || '').trim();
+      return {
+        enable_smart_calc: !!el('ws_enable_smart_calc')?.checked,
+        esunmind_weather_api_url: txt('ws_esunmind_weather_api_url'),
+        weather_max_age_seconds: num('ws_weather_max_age_seconds'),
+        forecast_rain_skip_mm: num('ws_forecast_rain_skip_mm'),
+        recent_rain_skip_mm: num('ws_recent_rain_skip_mm'),
+        wind_threshold: num('ws_wind_threshold'),
+        min_temp: num('ws_min_temp'),
+        rain_threshold: num('ws_rain_threshold'),
+        rain_sensor_entity_id: txt('ws_rain_sensor_entity_id'),
+        temp_sensor_entity_id: txt('ws_temp_sensor_entity_id'),
+        humidity_sensor_entity_id: txt('ws_humidity_sensor_entity_id'),
+        wind_sensor_entity_id: txt('ws_wind_sensor_entity_id')
+      };
+    }
+
+    async function openWeatherSettings(){
+      const modal = el('weatherSettingsModal');
+      if(!modal) return;
+      modal.classList.remove('eventlog-hidden');
+      try{
+        const data = await apiGet('/api/meteo/weather_settings');
+        setWeatherSettingsForm(data.settings || {});
+      }catch(e){
+        toast('Errore tarature: ' + (e.message || e));
+        setWeatherSettingsForm(WEATHER_DEFAULTS);
+      }
+    }
+
+    function closeWeatherSettings(){
+      el('weatherSettingsModal')?.classList.add('eventlog-hidden');
     }
 
     // When true, periodic refresh() will be suppressed to avoid DOM rebuilds
@@ -1642,6 +1790,22 @@
       eventLogBtn?.addEventListener("click", openEventLog);
       btnEventLogClose?.addEventListener("click", closeEventLog);
       eventLogModal?.addEventListener("click", (e)=>{ if(e.target && e.target.id === "eventLogModal") closeEventLog(); });
+
+      weatherSettingsBtn?.addEventListener("click", openWeatherSettings);
+      btnWeatherSettingsClose?.addEventListener("click", closeWeatherSettings);
+      weatherSettingsModal?.addEventListener("click", (e)=>{ if(e.target && e.target.id === "weatherSettingsModal") closeWeatherSettings(); });
+      weatherSettingsDefaults?.addEventListener("click", ()=> setWeatherSettingsForm(WEATHER_DEFAULTS));
+      weatherSettingsForm?.addEventListener("submit", async (event)=>{
+        event.preventDefault();
+        try{
+          const data = await apiPost('/api/meteo/weather_settings', getWeatherSettingsPayload());
+          setWeatherSettingsForm(data.settings || getWeatherSettingsPayload());
+          toast('Tarature meteo salvate');
+          await refresh();
+        }catch(e){
+          toast('Errore salvataggio meteo: ' + (e.message || e));
+        }
+      });
 
       const COMPACT_KEY = 'irrigazione.compact_v1';
 

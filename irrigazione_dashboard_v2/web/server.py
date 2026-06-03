@@ -19,7 +19,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.0.3"
+VERSION = "10.0.4"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -1507,6 +1507,69 @@ def meteo_manual_adjustment_set():
         return jsonify({"version": VERSION, 'ok': True, 'entity_id': entity_id, 'state': st})
     except Exception as e:
         return jsonify({"version": VERSION, 'error': str(e), 'entity_id': entity_id}), 500
+
+
+def _weather_settings_from_meteo_sensor():
+    opts = read_options()
+    entity_id = opts.get('meteo_info_entity') or 'sensor.e_dry_meteo_info'
+    st = ha_try_get_state(entity_id)
+    attrs = (st or {}).get('attributes') or {}
+    def val(key, default=None):
+        value = attrs.get(key)
+        return default if value is None else value
+    return {
+        'entity_id': entity_id,
+        'weather_mode': val('weather_mode'),
+        'weather_api_error': val('weather_api_error'),
+        'source': val('source'),
+        'available': val('available'),
+        'age_seconds': val('age_seconds'),
+        'enable_smart_calc': val('smart_calc_enabled', True),
+        'esunmind_weather_api_url': val('esunmind_weather_api_url', 'http://192.168.3.24:1980/api/weather/irrigation'),
+        'weather_max_age_seconds': val('weather_max_age_seconds', 900),
+        'forecast_rain_skip_mm': val('forecast_rain_skip_mm', 6),
+        'recent_rain_skip_mm': val('recent_rain_skip_mm', 4),
+        'rain_sensor_entity_id': val('rain_sensor', 'sensor.e_sunmind_weather_precip_1h_mm'),
+        'rain_threshold': val('rain_threshold', 0),
+        'temp_sensor_entity_id': val('temp_sensor', 'sensor.e_sunmind_weather_temp_c'),
+        'min_temp': val('min_temp', 5),
+        'humidity_sensor_entity_id': val('hum_sensor', 'sensor.e_sunmind_weather_humidity_pct'),
+        'wind_sensor_entity_id': val('wind_sensor', 'sensor.e_sunmind_weather_wind_ms'),
+        'wind_threshold': val('wind_threshold', 20),
+    }
+
+
+@app.route('/api/meteo/weather_settings', methods=['GET', 'POST'])
+def meteo_weather_settings():
+    ok, err = _require_token()
+    if not ok:
+        return err
+    if request.method == 'GET':
+        return jsonify({"version": VERSION, "ok": True, "settings": _weather_settings_from_meteo_sensor()})
+
+    data = request.get_json(silent=True) or {}
+    allowed = {
+        'enable_smart_calc',
+        'esunmind_weather_api_url',
+        'weather_max_age_seconds',
+        'forecast_rain_skip_mm',
+        'recent_rain_skip_mm',
+        'rain_sensor_entity_id',
+        'rain_threshold',
+        'temp_sensor_entity_id',
+        'min_temp',
+        'humidity_sensor_entity_id',
+        'wind_sensor_entity_id',
+        'wind_threshold',
+    }
+    payload = {k: data.get(k) for k in allowed if k in data}
+    if not payload:
+        return jsonify({"version": VERSION, "error": "nessuna taratura da salvare"}), 400
+    try:
+        ha_call_service('e_dry', 'update_weather_settings', payload)
+        return jsonify({"version": VERSION, "ok": True, "settings": _weather_settings_from_meteo_sensor()})
+    except Exception as e:
+        return jsonify({"version": VERSION, "error": str(e)}), 500
 @app.route('/api/irrigazione/zone/start', methods=['POST'])
 def zone_start():
     data = request.get_json(silent=True) or {}
