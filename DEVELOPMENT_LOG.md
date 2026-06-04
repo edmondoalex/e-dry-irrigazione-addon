@@ -22,3 +22,4 @@
 - Bump add-on a `10.0.10`: aggiunta route HTTP dedicata al logo EKONEX per correggerne il caricamento.
 - Creati tag `backup-before-controller-ui-20260604` e branch `codex/controller-ui-prototype` per una prova UI completamente reversibile.
 - Bump prototipo add-on a `10.1.0`: aggiunta panoramica operativa e nuova gerarchia visiva stile centralina professionale.
+- Bump prototipo add-on a `10.1.1`: corretto lo sfondo full viewport evitando la ripetizione a quadrati.

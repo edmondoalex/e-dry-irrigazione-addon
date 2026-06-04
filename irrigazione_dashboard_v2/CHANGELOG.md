@@ -1,3 +1,6 @@
+## 10.1.1
+- Corretto lo sfondo del tema prototipo: ora copre l'intera viewport, resta centrato e non viene ripetuto a quadrati.
+
 ## 10.1.0
 - Prima UI prototipo in stile centralina professionale, sviluppata su branch reversibile dedicato.
 - Aggiunta panoramica operativa con stato impianto, zona attiva, numero zone, programmi e fattore SmartCalc.

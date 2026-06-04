@@ -19,3 +19,4 @@ Ogni volta che fai modifiche a questo addon:
 - 2026-06-04: bump versione a `10.0.9`; aggiunto logo EKONEX traslucido al centro dell'intestazione della card meteo.
 - 2026-06-04: bump versione a `10.0.10`; aggiunta route HTTP dedicata al logo EKONEX.
 - 2026-06-04: bump versione prototipo a `10.1.0`; aggiunta panoramica operativa e UI stile centralina professionale sul branch `codex/controller-ui-prototype`.
+- 2026-06-04: bump versione prototipo a `10.1.1`; corretto sfondo full viewport senza ripetizione.
