@@ -289,6 +289,98 @@
       max-width:92vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     }
     .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+
+    /* Prototype: professional controller overview */
+    body{
+      background:
+        linear-gradient(165deg, rgba(3,31,43,.78), rgba(7,70,78,.66)),
+        url("sfondo.png");
+    }
+    .card{
+      --card:#092c38e8;
+      --card2:#0b3540f2;
+      border-color:rgba(135,214,224,.20);
+      box-shadow:0 16px 34px rgba(0,19,28,.32);
+    }
+    .card .hd{
+      background:linear-gradient(180deg,rgba(210,244,247,.20),rgba(112,196,207,.08));
+      border-bottom-color:rgba(135,214,224,.24);
+    }
+    .controller-overview{
+      display:grid;
+      grid-template-columns:minmax(260px,1.2fr) minmax(360px,1fr);
+      gap:14px;
+      padding:14px;
+      border-bottom:1px solid rgba(135,214,224,.20);
+      background:linear-gradient(135deg,rgba(32,145,163,.20),rgba(4,31,41,.12));
+    }
+    .controller-state{
+      display:flex;
+      align-items:center;
+      gap:16px;
+      min-height:110px;
+      padding:16px 18px;
+      border-radius:16px;
+      background:linear-gradient(135deg,rgba(39,181,160,.24),rgba(19,111,132,.20));
+      border:1px solid rgba(112,237,207,.28);
+    }
+    .controller-state-icon{
+      width:62px;
+      height:62px;
+      flex:0 0 62px;
+      display:grid;
+      place-items:center;
+      border-radius:50%;
+      color:#80f2d3;
+      background:rgba(4,37,49,.55);
+      border:1px solid rgba(128,242,211,.34);
+      box-shadow:0 0 28px rgba(63,218,185,.20);
+    }
+    .controller-state-icon svg{width:34px;height:34px;fill:currentColor}
+    .controller-kicker{font-size:10px;letter-spacing:.16em;color:#9fdbe1;font-weight:800}
+    .controller-state-title{margin-top:4px;font-size:clamp(21px,3vw,30px);font-weight:800;line-height:1.1}
+    .controller-state-detail{margin-top:7px;font-size:13px;color:#b9e7ea}
+    .controller-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    .controller-summary-item{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      padding:14px;
+      border-radius:16px;
+      background:rgba(3,28,38,.46);
+      border:1px solid rgba(135,214,224,.18);
+    }
+    .controller-summary-item span{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#9fdbe1}
+    .controller-summary-item b{margin:6px 0 2px;font-size:22px;color:#eaffff;overflow:hidden;text-overflow:ellipsis}
+    .controller-summary-item small{font-size:11px;color:#a7ced2}
+    .controller-layout{grid-template-columns:minmax(0,1.5fr) minmax(300px,.7fr)}
+    .zones-panel .hd,.programs .hd{min-height:54px}
+    .zones .zone{
+      border-color:rgba(135,214,224,.20);
+      background:linear-gradient(155deg,rgba(20,91,103,.24),rgba(3,27,36,.46));
+    }
+    .zones .zone.on{
+      border-color:rgba(128,242,211,.56);
+      background:radial-gradient(500px 180px at 30% 20%,rgba(64,220,185,.24),transparent 60%),rgba(3,27,36,.54);
+    }
+    button.primary{background:linear-gradient(135deg,rgba(36,192,166,.46),rgba(23,121,144,.28));border-color:rgba(112,237,207,.42)}
+    .bar > div{background:linear-gradient(90deg,#35d6bd,#69d4e4)}
+    input[type=range].bar-range::-webkit-slider-thumb{background:#54dfcb}
+    input[type=range].bar-range::-moz-range-thumb{background:#54dfcb}
+
+    @media(max-width:820px){
+      .controller-overview{grid-template-columns:1fr}
+    }
+    @media(max-width:640px){
+      .controller-overview{padding:10px;gap:10px}
+      .controller-state{min-height:auto;padding:14px}
+      .controller-state-icon{width:50px;height:50px;flex-basis:50px}
+      .controller-state-icon svg{width:28px;height:28px}
+      .controller-summary{grid-template-columns:repeat(3,minmax(0,1fr))}
+      .controller-summary-item{padding:10px 8px}
+      .controller-summary-item b{font-size:17px}
+    }
   </style>
   <style>
     /* Compact mode: tighter cards, hide decorative sprinkler */
@@ -370,7 +462,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.0.10</span>
+        <span class="pill" id="addonVersion">v10.1.0</span>
       </div>
       <div class="weather-header-brand"><img src="e-konex-label.png" alt="EKONEX"></div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
@@ -387,6 +479,35 @@
             <button class="primary icon" id="refreshBtn" aria-label="Aggiorna">Aggiorna</button>
             <button class="danger icon" id="stopAllBtn" aria-label="Ferma tutte le irrigazioni">STOP TUTTO</button>
           </div>
+        </div>
+      </div>
+    </div>
+    <div class="controller-overview">
+      <div class="controller-state">
+        <div class="controller-state-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 2C9 7 5 11.2 5 15a7 7 0 0 0 14 0c0-3.8-4-8-7-13Zm0 17.4A4.4 4.4 0 0 1 7.6 15c0-1.8 1.7-4.4 4.4-8.3 2.7 3.9 4.4 6.5 4.4 8.3a4.4 4.4 0 0 1-4.4 4.4Z"/></svg>
+        </div>
+        <div>
+          <div class="controller-kicker">STATO IMPIANTO</div>
+          <div class="controller-state-title" id="controllerState">Tutto regolare</div>
+          <div class="controller-state-detail" id="controllerActiveZone">Nessuna irrigazione attiva</div>
+        </div>
+      </div>
+      <div class="controller-summary">
+        <div class="controller-summary-item">
+          <span>Zone</span>
+          <b id="controllerZonesCount">-</b>
+          <small>configurate</small>
+        </div>
+        <div class="controller-summary-item">
+          <span>Programmi</span>
+          <b id="controllerProgramsState">-</b>
+          <small id="controllerProgramsCount">-</small>
+        </div>
+        <div class="controller-summary-item">
+          <span>SmartCalc</span>
+          <b id="controllerSmartFactor">-</b>
+          <small>fattore meteo</small>
         </div>
       </div>
     </div>
@@ -432,8 +553,8 @@
     </div>
   </div>
 
-  <main>
-    <section class="card">
+  <main class="controller-layout">
+    <section class="card zones-panel">
       <div class="hd">
           <h2>Zone: <span id="zonesCount">?</span></h2>
           <span class="pill" id="zoneStatus"><span id="zoneStatusDot" class="dot off"></span> <span id="zoneStatusText">Tutte OFF</span></span>
@@ -1024,12 +1145,17 @@
 
       if(!zones || !zones.length){
         zonesEl.innerHTML = `<div class="hint">Nessuna zona trovata.</div>`;
+        if(el('controllerZonesCount')) el('controllerZonesCount').textContent = '0';
+        if(el('controllerState')) el('controllerState').textContent = 'Impianto non configurato';
+        if(el('controllerActiveZone')) el('controllerActiveZone').textContent = 'Nessuna zona disponibile';
         return;
       }
       try{
         const zc = el('zonesCount');
         const count = zones.length;
         if(zc) zc.textContent = count;
+        const controllerCount = el('controllerZonesCount');
+        if(controllerCount) controllerCount.textContent = count;
       }catch(_){}
       // stato ottimistico (usato per evitare flicker tra click e refresh HA)
       const optMap = (window.__optimisticZones = window.__optimisticZones || {});
@@ -1438,6 +1564,12 @@
           ? (activeName ? `In irrigazione Zona ${activeName}` : 'In irrigazione')
           : 'Tutte OFF';
         if(txt) txt.textContent = statusLabel;
+        const controllerState = el('controllerState');
+        const controllerActiveZone = el('controllerActiveZone');
+        if(controllerState) controllerState.textContent = anyOnGlobal ? 'Irrigazione in corso' : 'Tutto regolare';
+        if(controllerActiveZone) controllerActiveZone.textContent = anyOnGlobal
+          ? (activeName ? `${activeName} attiva` : 'Zona attiva')
+          : 'Nessuna irrigazione attiva';
       }catch(e){ /* no-op */ }
 
       const activeZoneEl = el("activeZone");
@@ -1452,6 +1584,8 @@
       el("w1").textContent = w[0]?.missing ? "missing" : (w[0]?.state ?? "-");
       el("w2").textContent = w[1]?.missing ? "missing" : (w[1]?.state ?? "-");
       el("w3").textContent = w[2]?.missing ? "missing" : (w[2]?.state ?? "-");
+      const smartFactor = el('controllerSmartFactor');
+      if(smartFactor) smartFactor.textContent = w[0]?.missing ? '-' : (w[0]?.state ?? '-');
     }
 
     function renderPrograms(enabledState, enabledEntity, programs, zones){
@@ -1462,6 +1596,10 @@
 
       el("progEntity").textContent = enabledEntity || "-";
       const enabled = (enabledState === "on");
+      const controllerProgramsState = el('controllerProgramsState');
+      const controllerProgramsCount = el('controllerProgramsCount');
+      if(controllerProgramsState) controllerProgramsState.textContent = enabled ? 'Attivi' : 'Sospesi';
+      if(controllerProgramsCount) controllerProgramsCount.textContent = `${(programs || []).length} configurati`;
       const cb = el("progEnabled");
       if(cb){
         cb.checked = enabled;

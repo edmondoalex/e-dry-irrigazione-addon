@@ -1,3 +1,8 @@
+## 10.1.0
+- Prima UI prototipo in stile centralina professionale, sviluppata su branch reversibile dedicato.
+- Aggiunta panoramica operativa con stato impianto, zona attiva, numero zone, programmi e fattore SmartCalc.
+- Aggiornata gerarchia visiva con palette blu/verde acqua e layout responsive, senza modificare API o logica di controllo.
+
 ## 10.0.10
 - Aggiunta la route HTTP dedicata al logo EKONEX, che ora viene caricato correttamente nella dashboard.
 
