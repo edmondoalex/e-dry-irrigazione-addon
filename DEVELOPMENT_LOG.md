@@ -14,3 +14,8 @@
 - Protetta la sezione tarature meteo con `admin_settings_password`, rimossa modifica entita fallback dalla dashboard cliente; bump add-on a `10.0.5`.
 - Bump add-on a `10.0.6`: aggiunta gestione admin preset zona e preset custom persistenti tramite `/api/irrigazione/zone_profiles` e servizi component `e_dry.update_zone`/`e_dry.update_zone_profiles`.
 - Bump add-on a `10.0.7`: corretto popup admin con scroll interno e blocco scroll pagina sottostante.
+
+## 2026-06-04
+
+- Bump add-on a `10.0.8`: ripristinata icona hamburger del menu con tre barre HTML/CSS indipendenti dalla codifica.
+- Bump add-on a `10.0.9`: aggiunto logo EKONEX traslucido al centro dell'intestazione della card meteo.

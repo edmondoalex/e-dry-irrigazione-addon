@@ -15,3 +15,5 @@ Ogni volta che fai modifiche a questo addon:
 - 2026-06-03: bump versione a `10.0.5`; protetta `Tarature meteo` con `admin_settings_password` e bloccata la modifica entita fallback dalla dashboard cliente.
 - 2026-06-03: bump versione a `10.0.6`; aggiunta sezione admin `Preset zone`, endpoint `/api/irrigazione/zone_profiles`, assegnazione preset per zona e creazione preset custom persistenti nel component e-Dry.
 - 2026-06-03: bump versione a `10.0.7`; corretto popup admin per usare scroll interno e impedire lo scroll della pagina sottostante.
+- 2026-06-04: bump versione a `10.0.8`; ripristinata icona hamburger del menu con tre barre HTML/CSS indipendenti dalla codifica.
+- 2026-06-04: bump versione a `10.0.9`; aggiunto logo EKONEX traslucido al centro dell'intestazione della card meteo.

@@ -1,3 +1,9 @@
+## 10.0.9
+- Aggiunto il logo EKONEX traslucido al centro dell'intestazione della card meteo, con dimensionamento responsive.
+
+## 10.0.8
+- Ripristinata l'icona hamburger del menu usando tre barre HTML/CSS, evitando sostituzioni dovute alla codifica dei caratteri.
+
 ## 10.0.7
 - Corretto popup admin `Tarature meteo`: ora ha scroll interno e blocca lo scroll della pagina sottostante.
 - Migliorata usabilita su viewport piccoli per raggiungere pulsanti e campi in fondo al popup.
