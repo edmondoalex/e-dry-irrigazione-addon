@@ -23,3 +23,4 @@
 - Creati tag `backup-before-controller-ui-20260604` e branch `codex/controller-ui-prototype` per una prova UI completamente reversibile.
 - Bump prototipo add-on a `10.1.0`: aggiunta panoramica operativa e nuova gerarchia visiva stile centralina professionale.
 - Bump prototipo add-on a `10.1.1`: corretto lo sfondo full viewport evitando la ripetizione a quadrati.
+- Bump prototipo add-on a `10.2.0`: aggiunti riepiloghi prossima irrigazione e decisione SmartCalc.

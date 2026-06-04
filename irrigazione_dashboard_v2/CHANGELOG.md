@@ -1,3 +1,8 @@
+## 10.2.0
+- Aggiunta panoramica `Prossima irrigazione`, calcolata dai programmi abilitati per i successivi sette giorni.
+- Mostrati programma e zone coinvolte nella prossima partenza.
+- Aggiunto riepilogo `Decisione SmartCalc` con stato meteo e motivazione prodotta dal component.
+
 ## 10.1.1
 - Corretto lo sfondo del tema prototipo: ora copre l'intera viewport, resta centrato e non viene ripetuto a quadrati.
 
