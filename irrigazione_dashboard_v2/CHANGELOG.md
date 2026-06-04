@@ -1,3 +1,6 @@
+## 10.2.1
+- Portate le scritte finali delle card zona sopra la decorazione sprinkler, migliorandone la leggibilita.
+
 ## 10.2.0
 - Aggiunta panoramica `Prossima irrigazione`, calcolata dai programmi abilitati per i successivi sette giorni.
 - Mostrati programma e zone coinvolte nella prossima partenza.
