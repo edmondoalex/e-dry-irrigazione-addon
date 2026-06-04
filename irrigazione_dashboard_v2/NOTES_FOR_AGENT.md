@@ -17,3 +17,4 @@ Ogni volta che fai modifiche a questo addon:
 - 2026-06-03: bump versione a `10.0.7`; corretto popup admin per usare scroll interno e impedire lo scroll della pagina sottostante.
 - 2026-06-04: bump versione a `10.0.8`; ripristinata icona hamburger del menu con tre barre HTML/CSS indipendenti dalla codifica.
 - 2026-06-04: bump versione a `10.0.9`; aggiunto logo EKONEX traslucido al centro dell'intestazione della card meteo.
+- 2026-06-04: bump versione a `10.0.10`; aggiunta route HTTP dedicata al logo EKONEX.

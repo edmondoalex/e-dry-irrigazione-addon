@@ -19,3 +19,4 @@
 
 - Bump add-on a `10.0.8`: ripristinata icona hamburger del menu con tre barre HTML/CSS indipendenti dalla codifica.
 - Bump add-on a `10.0.9`: aggiunto logo EKONEX traslucido al centro dell'intestazione della card meteo.
+- Bump add-on a `10.0.10`: aggiunta route HTTP dedicata al logo EKONEX per correggerne il caricamento.

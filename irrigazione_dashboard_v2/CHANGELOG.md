@@ -1,3 +1,6 @@
+## 10.0.10
+- Aggiunta la route HTTP dedicata al logo EKONEX, che ora viene caricato correttamente nella dashboard.
+
 ## 10.0.9
 - Aggiunto il logo EKONEX traslucido al centro dell'intestazione della card meteo, con dimensionamento responsive.
 

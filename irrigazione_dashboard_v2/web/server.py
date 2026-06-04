@@ -19,7 +19,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.0.9"
+VERSION = "10.0.10"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -158,6 +158,13 @@ def logo_png_v2():
     logo2 = HERE / "e-dry2.png"
     if logo2.exists():
         return send_file(str(logo2))
+    return ("", 404)
+
+@app.route("/e-konex-label.png")
+def ekonex_label_png():
+    logo = HERE / "e-konex-label.png"
+    if logo.exists():
+        return send_file(str(logo), mimetype="image/png")
     return ("", 404)
 
 @app.route("/sfondo.png")
