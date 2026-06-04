@@ -22,3 +22,4 @@ Ogni volta che fai modifiche a questo addon:
 - 2026-06-04: bump versione prototipo a `10.1.1`; corretto sfondo full viewport senza ripetizione.
 - 2026-06-04: bump versione prototipo a `10.2.0`; aggiunte prossima irrigazione e decisione SmartCalc nella panoramica.
 - 2026-06-04: bump versione prototipo a `10.2.1`; corretto livello delle scritte zona rispetto alla decorazione sprinkler.
+- 2026-06-04: bump versione prototipo a `10.2.2`; spostato sprinkler fuori dalle scritte e nascosto quando la zona e OFF.

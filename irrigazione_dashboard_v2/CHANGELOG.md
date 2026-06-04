@@ -1,3 +1,7 @@
+## 10.2.2
+- Spostata fisicamente la decorazione sprinkler sotto l'area delle scritte delle zone.
+- Lo sprinkler resta nascosto quando la zona e OFF e appare solo durante l'irrigazione.
+
 ## 10.2.1
 - Portate le scritte finali delle card zona sopra la decorazione sprinkler, migliorandone la leggibilita.
 

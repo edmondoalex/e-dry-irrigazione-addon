@@ -25,3 +25,4 @@
 - Bump prototipo add-on a `10.1.1`: corretto lo sfondo full viewport evitando la ripetizione a quadrati.
 - Bump prototipo add-on a `10.2.0`: aggiunti riepiloghi prossima irrigazione e decisione SmartCalc.
 - Bump prototipo add-on a `10.2.1`: portate le scritte finali delle zone sopra la decorazione sprinkler.
+- Bump prototipo add-on a `10.2.2`: spostato fisicamente lo sprinkler sotto le scritte e nascosto nelle zone OFF.
