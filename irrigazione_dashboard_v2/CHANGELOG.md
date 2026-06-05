@@ -1,3 +1,12 @@
+## 10.4.0
+- Aggiunta creazione programmi dalla dashboard add-on tramite pulsante `Nuovo programma`.
+- Aggiunto endpoint `POST /api/programs/create` collegato al servizio component `e_dry.create_program`.
+- Aggiunto fallback automatico a `e_dry.update_program` con `program_id: 0` se il nuovo servizio non e ancora disponibile.
+- Mantenuta la fix del pulsante `Modifica` programmi, ora stabile durante i refresh periodici.
+
+## 10.3.2
+- Reso immediato e stabile il pulsante `Modifica` dei programmi: apertura su pointerdown e refresh periodico sospeso mentre il pannello e aperto.
+
 ## 10.3.1
 - Corretto il layout dei badge nelle card zona: ora usano sempre due colonne e non vengono piu tagliati nelle card strette.
 

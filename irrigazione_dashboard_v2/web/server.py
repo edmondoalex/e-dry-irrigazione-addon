@@ -19,7 +19,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.3.1"
+VERSION = "10.4.0"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -757,6 +757,48 @@ def programs_update():
         return jsonify({"version": VERSION,'ok': True})
     except Exception as e:
         return jsonify({"version": VERSION,'error': str(e)}), 500
+
+@app.route('/api/programs/create', methods=['POST'])
+def programs_create():
+    """Create a persistent e_dry irrigation program."""
+    try:
+        payload = request.get_json(silent=True) or {}
+        name = str(payload.get('name') or '').strip()
+        time_val = str(payload.get('time') or '').strip()
+        days = payload.get('days') or []
+        zones = payload.get('zones') or []
+
+        if not name:
+            return jsonify({"version": VERSION, 'error': 'name richiesto'}), 400
+        if not re.match(r'^\d{1,2}:\d{2}$', time_val):
+            return jsonify({"version": VERSION, 'error': 'time richiesto in formato HH:MM'}), 400
+        if not isinstance(days, list) or not days:
+            return jsonify({"version": VERSION, 'error': 'seleziona almeno un giorno'}), 400
+        if not isinstance(zones, list) or not zones:
+            return jsonify({"version": VERSION, 'error': 'seleziona almeno una zona'}), 400
+
+        cleaned = re.sub(r"Centralina\s+Irrigazione", "", name, flags=re.I)
+        cleaned = re.sub(r"\s*-?\s*schedule\b", "", cleaned, flags=re.I)
+        cleaned = re.sub(r"\s+", " ", cleaned).strip(" -")
+        cleaned = re.sub(r"^Programma\s+", "", cleaned, flags=re.I).strip(" -")
+
+        create_payload = {
+            'name': f"Programma {cleaned}" if cleaned else "Programma",
+            'time': time_val,
+            'days': [str(d).strip() for d in days if str(d).strip()],
+            'zones': zones,
+            'pause_minutes': float(payload.get('pause_minutes') or 0),
+            'enabled': bool(payload.get('enabled', True)),
+        }
+        try:
+            ha_call_service('e_dry', 'create_program', create_payload)
+        except requests.HTTPError:
+            fallback_payload = dict(create_payload)
+            fallback_payload['program_id'] = 0
+            ha_call_service('e_dry', 'update_program', fallback_payload)
+        return jsonify({"version": VERSION, 'ok': True})
+    except Exception as e:
+        return jsonify({"version": VERSION, 'error': str(e)}), 500
 
 
 def discover_zones(strict_config_entry=None):

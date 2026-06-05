@@ -25,3 +25,5 @@ Ogni volta che fai modifiche a questo addon:
 - 2026-06-04: bump versione prototipo a `10.2.2`; spostato sprinkler fuori dalle scritte e nascosto quando la zona e OFF.
 - 2026-06-05: bump versione prototipo a `10.3.0`; ripulite card zona con badge preset e metriche durata compatte.
 - 2026-06-05: bump versione prototipo a `10.3.1`; corretto layout badge zona a due colonne per evitare tagli nelle card strette.
+- 2026-06-05: bump versione prototipo a `10.3.2`; reso stabile il pulsante Modifica programmi sospendendo il refresh durante l'editing.
+- 2026-06-05: bump versione prototipo a `10.4.0`; aggiunta creazione programmi da add-on tramite `e_dry.create_program`.
