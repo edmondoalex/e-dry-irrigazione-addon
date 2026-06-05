@@ -19,7 +19,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.5.6"
+VERSION = "10.5.7"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -1472,6 +1472,12 @@ def api_irrigazione_state():
                 'time': p.get('time'),
                 'enabled': bool(p.get('enabled')),
                 'progress': prog_prog,
+                'running': bool(p.get('running')),
+                'current_zone_id': p.get('current_zone_id'),
+                'next_zone_id': p.get('next_zone_id'),
+                'zone_remaining_seconds': p.get('zone_remaining_seconds'),
+                'zone_started_at': p.get('zone_started_at'),
+                'zone_end_at': p.get('zone_end_at'),
                 'stop_button': lp.get('stop_button'),
                 'days': p.get('days') or [],
                 'zones': p.get('zones') or [],
@@ -1995,6 +2001,11 @@ def programs_stop():
     if pid is None:
         return jsonify({
         "version": VERSION,'error': 'program_id richiesto'}), 400
+    try:
+        ha_call_service('e_dry', 'stop_programs', {})
+        return jsonify({"version": VERSION, "ok": True, "program_id": pid, "via": "e_dry.stop_programs"})
+    except Exception:
+        pass
     entities = _get_entities_for_bind()
     if not entities:
         return jsonify({
@@ -2022,6 +2033,15 @@ def programs_stop():
     except Exception as e:
         return jsonify({
         "version": VERSION,'error': str(e), 'program_id': pid}), 500
+
+
+@app.route('/api/programs/skip_zone', methods=['POST'])
+def programs_skip_zone():
+    try:
+        ha_call_service('e_dry', 'skip_program_zone', {})
+        return jsonify({"version": VERSION, "ok": True, "via": "e_dry.skip_program_zone"})
+    except Exception as e:
+        return jsonify({"version": VERSION, "error": str(e)}), 500
 
 
 @app.route('/api/irrigazione/ignore_meteo', methods=['POST'])

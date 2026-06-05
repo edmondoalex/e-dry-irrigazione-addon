@@ -36,3 +36,4 @@ Ogni volta che fai modifiche a questo addon:
 - 2026-06-05: bump versione prototipo a `10.5.4`; aggiunto `STOP TUTTO` nel riquadro `Irriga ora` e riusata logica stop totale comune.
 - 2026-06-05: bump versione prototipo a `10.5.5`; corretto `Irriga ora` per usare `start_zone_for` e sequenza server temporizzata multi-zona.
 - 2026-06-05: bump versione prototipo a `10.5.6`; aggiunto pannello sequenza manuale con zona corrente, residuo, prossima zona e comando `Salta zona`.
+- 2026-06-05: bump versione prototipo a `10.5.7`; aggiunto pannello programma in corso con zona corrente/prossima/residuo e comandi `Salta zona`/`Stop programma`.

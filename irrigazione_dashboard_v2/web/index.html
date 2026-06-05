@@ -365,6 +365,7 @@
     .quick-sequence-item b{display:block;margin-top:3px;font-size:13px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .quick-sequence-bar{grid-column:1/-1;height:8px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
     .quick-sequence-bar div{height:100%;width:0;background:linear-gradient(90deg,#ffd27c,#64e4cf)}
+    .program-run-panel{margin-top:10px}
     @media(max-width:760px){.quick-irrigation{grid-template-columns:1fr}.quick-irrigation-actions{justify-content:flex-start}.quick-zone-list{grid-template-columns:1fr}}
     @media(max-width:760px){.quick-sequence{grid-template-columns:1fr}.quick-sequence-bar{grid-column:1}}
     @media(max-width:640px){.prog-edit{grid-template-columns:1fr}.days-grid,.zones-grid{grid-template-columns:1fr}}
@@ -589,7 +590,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.5.6</span>
+        <span class="pill" id="addonVersion">v10.5.7</span>
       </div>
       <div class="weather-header-brand"><img src="e-konex-label.png" alt="EKONEX"></div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
@@ -754,6 +755,16 @@
             <div style="font-weight:700">Programmi abilitati</div>
             <div class="small" id="progEntity">-</div>
           </div>
+        </div>
+
+        <div class="quick-sequence program-run-panel" id="programRunPanel" hidden>
+          <div class="quick-sequence-item"><span>Programma</span><b id="programRunName">-</b></div>
+          <div class="quick-sequence-item"><span>In corso</span><b id="programRunCurrent">-</b></div>
+          <div class="quick-sequence-item"><span>Manca</span><b id="programRunRemaining">-</b></div>
+          <div class="quick-sequence-item"><span>Poi</span><b id="programRunNext">-</b></div>
+          <button type="button" class="pill-btn" id="programSkipBtn">Salta zona</button>
+          <button type="button" class="danger" id="programStopBtn">Stop programma</button>
+          <div class="quick-sequence-bar"><div id="programRunFill"></div></div>
         </div>
 
         <div style="margin-top:10px">
@@ -1987,6 +1998,47 @@
       detailEl.textContent = `${rawName || 'Programma'}: ${zonesText}`;
     }
 
+    function renderProgramRunPanel(programs, zoneMap){
+      const panel = el('programRunPanel');
+      if(!panel) return;
+      const running = (programs || []).find(p=>p.running || Number(p.progress || 0) > 0);
+      if(!running){
+        panel.hidden = true;
+        return;
+      }
+      panel.hidden = false;
+      const rawName = String(running.name || running.program_id || 'Programma')
+        .replace(/Centralina\s+Irrigazione/gi,'')
+        .replace(/-?\s*schedule/gi,'')
+        .trim();
+      const currentId = running.current_zone_id;
+      const nextId = running.next_zone_id;
+      const currentName = currentId == null ? 'Zona in aggiornamento' : (zoneMap[String(currentId)] || `Zona ${currentId}`);
+      const nextName = nextId == null ? 'Fine programma' : (zoneMap[String(nextId)] || `Zona ${nextId}`);
+      const remaining = Number(running.zone_remaining_seconds);
+      const started = Number(running.zone_started_at);
+      const endAt = Number(running.zone_end_at);
+      let fill = Number(running.progress || 0);
+      if(Number.isFinite(started) && Number.isFinite(endAt) && Number.isFinite(remaining)){
+        const total = Math.max(1, endAt - started);
+        fill = Math.max(0, Math.min(100, 100 - ((remaining / total) * 100)));
+      }
+      const fmt = (sec)=>{
+        if(!Number.isFinite(sec)) return '-';
+        const s = Math.max(0, Math.floor(sec));
+        const m = Math.floor(s / 60);
+        const r = s % 60;
+        return `${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`;
+      };
+      if(el('programRunName')) el('programRunName').textContent = rawName || 'Programma';
+      if(el('programRunCurrent')) el('programRunCurrent').textContent = currentName;
+      if(el('programRunRemaining')) el('programRunRemaining').textContent = fmt(remaining);
+      if(el('programRunNext')) el('programRunNext').textContent = nextName;
+      if(el('programRunFill')) el('programRunFill').style.width = `${fill}%`;
+      const stopBtn = el('programStopBtn');
+      if(stopBtn) stopBtn.dataset.programId = String(running.program_id || '');
+    }
+
     function renderNewProgramOptions(zones){
       const dayLabels = {mon:"Lun",tue:"Mar",wed:"Mer",thu:"Gio",fri:"Ven",sat:"Sab",sun:"Dom"};
       const daysBox = el('newProgramDays');
@@ -2069,6 +2121,7 @@
       if(controllerProgramsState) controllerProgramsState.textContent = enabled ? 'Attivi' : 'Sospesi';
       if(controllerProgramsCount) controllerProgramsCount.textContent = `${(programs || []).length} configurati`;
       renderNextIrrigation(enabled, programs, zoneMap);
+      renderProgramRunPanel(programs, zoneMap);
       renderNewProgramOptions(zones);
       if(window.__newProgramOpen){
         const pane = el('newProgramPane');
@@ -2376,6 +2429,32 @@
         setTimeout(()=>refresh(true), 300);
       }catch(e){
         toast('Errore salto zona: ' + (e.message || e));
+      }finally{
+        event.currentTarget.disabled = false;
+      }
+    });
+    el('programSkipBtn')?.addEventListener('click', async (event)=>{
+      try{
+        event.currentTarget.disabled = true;
+        await apiPost('/api/programs/skip_zone', {});
+        toast('Programma: passo alla prossima zona');
+        setTimeout(()=>refresh(true), 300);
+      }catch(e){
+        toast('Errore salto zona programma: ' + (e.message || e));
+      }finally{
+        event.currentTarget.disabled = false;
+      }
+    });
+    el('programStopBtn')?.addEventListener('click', async (event)=>{
+      const pid = Number(event.currentTarget.dataset.programId || 0);
+      if(!pid){ toast('Programma in corso non riconosciuto'); return; }
+      try{
+        event.currentTarget.disabled = true;
+        await apiPost('/api/programs/stop', { program_id: pid });
+        toast('Programma fermato');
+        setTimeout(()=>refresh(true), 300);
+      }catch(e){
+        toast('Errore stop programma: ' + (e.message || e));
       }finally{
         event.currentTarget.disabled = false;
       }

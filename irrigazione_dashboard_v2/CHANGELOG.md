@@ -1,3 +1,7 @@
+## 10.5.7
+- Aggiunto pannello `Programma in corso` con programma, zona corrente, residuo, prossima zona e barra avanzamento.
+- Aggiunti comandi `Salta zona` e `Stop programma` nella sezione Programmi.
+
 ## 10.5.6
 - Aggiunto pannello `Sequenza manuale` in stile centralina professionale: zona in corso, tempo residuo, prossima zona e barra avanzamento.
 - Aggiunto pulsante `Salta zona` per passare alla zona successiva senza fermare tutta la sequenza.
