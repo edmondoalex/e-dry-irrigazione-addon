@@ -1,3 +1,6 @@
+## 10.5.10
+- Rinominata la pagina manuale in `Guida utente e-Dry`.
+
 ## 10.5.9
 - Aggiunta pagina `Manuale` apribile dal menu hamburger.
 - Le tarature meteo richiedono la password a ogni apertura e il popup si apre solo dopo validazione admin.
