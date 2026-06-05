@@ -19,7 +19,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.5.3"
+VERSION = "10.5.5"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -32,6 +32,10 @@ LAST_STATE = {"zones": None, "active_zone": None}
 LAST_STATE_TS = 0
 LAST_STATE_DIRTY = False
 WS_THREAD_STARTED = False
+QUICK_SEQUENCE_LOCK = threading.Lock()
+QUICK_SEQUENCE_CANCEL = threading.Event()
+QUICK_SEQUENCE_THREAD = None
+QUICK_SEQUENCE_ID = 0
 
 HA_BASE = os.environ.get("HA_BASE", "http://supervisor/core")
 SUPERVISOR_TOKEN = os.environ.get("SUPERVISOR_TOKEN", "")
@@ -309,6 +313,19 @@ def _safe_int(v):
         if s == "":
             return None
         return int(float(s))
+    except Exception:
+        return None
+
+def _safe_float(v):
+    try:
+        if v is None:
+            return None
+        if isinstance(v, bool):
+            return None
+        s = str(v).strip().replace(',', '.')
+        if s == "":
+            return None
+        return float(s)
     except Exception:
         return None
 
@@ -1700,11 +1717,79 @@ def zone_start():
     zone_id = _safe_int(zone_raw)
     if zone_id is None:
         return jsonify({"version": VERSION, 'error': 'zone_id richiesto'}), 400
+    duration = _safe_float(data.get('duration') or data.get('minutes'))
     try:
+        if duration is not None and duration > 0:
+            ha_call_service('e_dry', 'start_zone_for', {'zone_id': int(zone_id), 'minutes': float(duration)})
+            return jsonify({"version": VERSION, 'ok': True, 'zone_id': int(zone_id), 'minutes': float(duration), 'via': 'e_dry.start_zone_for'})
         ha_call_service('e_dry', 'start_zone', {'zone_id': int(zone_id)})
         return jsonify({"version": VERSION, 'ok': True, 'zone_id': int(zone_id), 'via': 'e_dry.start_zone'})
     except Exception as e:
         return jsonify({"version": VERSION, 'error': str(e), 'zone_id': zone_id}), 500
+
+
+def _run_quick_sequence(sequence_id, zones, minutes, cancel_event):
+    current_zid = None
+    try:
+        for zone in zones:
+            if cancel_event.is_set():
+                break
+            zid = _safe_int(zone.get('zone_id'))
+            if zid is None:
+                continue
+            try:
+                current_zid = int(zid)
+                ha_call_service('e_dry', 'start_zone_for', {'zone_id': int(zid), 'minutes': float(minutes)})
+            except Exception:
+                traceback.print_exc()
+                continue
+            if cancel_event.wait(float(minutes) * 60.0):
+                break
+            try:
+                ha_call_service('e_dry', 'stop_zone', {'zone_id': int(zid)})
+                current_zid = None
+            except Exception:
+                traceback.print_exc()
+    finally:
+        if current_zid is not None:
+            try:
+                ha_call_service('e_dry', 'stop_zone', {'zone_id': int(current_zid)})
+            except Exception:
+                pass
+
+
+@app.route('/api/irrigazione/sequence/start', methods=['POST'])
+def quick_sequence_start():
+    data = request.get_json(silent=True) or {}
+    zones = data.get('zones') or []
+    minutes = _safe_float(data.get('duration') or data.get('minutes'))
+    if not isinstance(zones, list) or not zones:
+        return jsonify({"version": VERSION, "error": "seleziona almeno una zona"}), 400
+    if minutes is None or minutes <= 0:
+        return jsonify({"version": VERSION, "error": "durata non valida"}), 400
+    minutes = max(1.0, min(30.0, float(minutes)))
+    clean_zones = []
+    for item in zones:
+        zid = _safe_int((item or {}).get('zone_id') if isinstance(item, dict) else item)
+        if zid is not None:
+            clean_zones.append({'zone_id': int(zid)})
+    if not clean_zones:
+        return jsonify({"version": VERSION, "error": "nessuna zona valida"}), 400
+
+    global QUICK_SEQUENCE_THREAD, QUICK_SEQUENCE_ID, QUICK_SEQUENCE_CANCEL
+    with QUICK_SEQUENCE_LOCK:
+        QUICK_SEQUENCE_CANCEL.set()
+        QUICK_SEQUENCE_CANCEL = threading.Event()
+        QUICK_SEQUENCE_ID += 1
+        seq_id = QUICK_SEQUENCE_ID
+        QUICK_SEQUENCE_THREAD = threading.Thread(
+            target=_run_quick_sequence,
+            args=(seq_id, clean_zones, minutes, QUICK_SEQUENCE_CANCEL),
+            daemon=True,
+        )
+        QUICK_SEQUENCE_THREAD.start()
+
+    return jsonify({"version": VERSION, "ok": True, "sequence_id": seq_id, "zones": clean_zones, "minutes": minutes})
 
 
 @app.route('/api/irrigazione/zone/stop', methods=['POST'])
@@ -1725,6 +1810,7 @@ def zone_stop():
 @app.route('/api/irrigazione/zone/stop_all', methods=['POST'])
 @app.route('/api/irrigazione/stop_all', methods=['POST'])
 def stop_all():
+    QUICK_SEQUENCE_CANCEL.set()
     opts = read_options()
     zones_info_entity = opts.get('zones_info_entity') or 'sensor.e_dry_zones_info'
     errors = []

@@ -33,3 +33,5 @@ Ogni volta che fai modifiche a questo addon:
 - 2026-06-05: bump versione prototipo a `10.5.1`; aggiunto riquadro `Irriga ora` sopra le zone senza rimuovere i pulsanti `Avvia` nelle card.
 - 2026-06-05: bump versione prototipo a `10.5.2`; `Irriga ora` supporta selezione multipla zone e i pulsanti durata non avviano piu automaticamente.
 - 2026-06-05: bump versione prototipo a `10.5.3`; corretto layout mobile a colonna singola per Zone/Programmi e wrapping testi lunghi.
+- 2026-06-05: bump versione prototipo a `10.5.4`; aggiunto `STOP TUTTO` nel riquadro `Irriga ora` e riusata logica stop totale comune.
+- 2026-06-05: bump versione prototipo a `10.5.5`; corretto `Irriga ora` per usare `start_zone_for` e sequenza server temporizzata multi-zona.

@@ -571,7 +571,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.5.3</span>
+        <span class="pill" id="addonVersion">v10.5.5</span>
       </div>
       <div class="weather-header-brand"><img src="e-konex-label.png" alt="EKONEX"></div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
@@ -710,6 +710,7 @@
             <button type="button" class="pill-btn quick-min" data-min="10">10 min</button>
             <button type="button" class="pill-btn quick-min" data-min="15">15 min</button>
             <button type="button" class="primary" id="quickStartBtn">Irriga ora</button>
+            <button type="button" class="danger" id="quickStopAllBtn">STOP TUTTO</button>
           </div>
         </div>
         <div id="zones" class="zones"></div>
@@ -1364,11 +1365,9 @@
           window.__optimisticZones[item.zone_id] = { state: 'on', ts: Date.now() };
         });
         window.__suppressRefresh = true;
-        for(const item of selectedZones){
-          await apiPost('/api/irrigazione/zone/start', { zone_id: item.zone_id, duration, entity_id: item.entity_id });
-        }
+        await apiPost('/api/irrigazione/sequence/start', { zones: selectedZones, duration });
         const label = selectedZones.length === 1 ? `zona ${selectedZones[0].zone_id}` : `${selectedZones.length} zone`;
-        toast(`Irrigo ora: ${label} per ${duration} min`);
+        toast(`Sequenza avviata: ${label} per ${duration} min ciascuna`);
         setTimeout(()=>{ window.__suppressRefresh = false; refresh(true); }, 900);
       }catch(e){
         window.__suppressRefresh = false;
@@ -2260,6 +2259,40 @@
       }
     }
 
+    async function stopAllIrrigation(buttonEl){
+      try{
+        if(buttonEl) buttonEl.disabled = true;
+        window.__optimisticZones = {};
+        window.__suppressRefresh = false;
+
+        let stoppedCount = 0;
+        try{
+          const state = await apiGet('/api/irrigazione/state');
+          const activeZones = (state.zones || []).filter(z => {
+            if(z.is_on) return true;
+            const rem = (z.remaining_raw || '').toString();
+            if(rem && !['0','0:00','00:00','0:00:00','00:00:00'].includes(rem.trim())) return true;
+            const pctNum = Number(z.percent);
+            return !Number.isNaN(pctNum) && pctNum > 0;
+          });
+          for(const z of activeZones){
+            try{ await apiPost('/api/irrigazione/zone/stop', { zone_id: z.id, entity_id: z.switch || z.switch_entity || z.switch_entity_id }); stoppedCount++; }
+            catch(_e){ /* continua con le altre */ }
+          }
+        }catch(_){ /* se fallisce, andiamo comunque sullo stop_all */ }
+
+        try{ await apiPost('/api/irrigazione/stop_all', {}); }
+        catch(_){ await apiPost('/api/irrigazione/zone/stop_all', {}); }
+
+        toast(stoppedCount > 0 ? `STOP TUTTO (${stoppedCount} zone)` : 'STOP TUTTO');
+        setTimeout(()=>refresh(true), 300);
+      } catch(e){
+        toast('Errore STOP: ' + e.message);
+      } finally {
+        if(buttonEl) buttonEl.disabled = false;
+      }
+    }
+
     const refreshBtnEl = el("refreshBtn");
     if(refreshBtnEl){
       refreshBtnEl.addEventListener("click", ()=>refresh(true));
@@ -2279,6 +2312,7 @@
     el('quickNoZones')?.addEventListener('click', ()=>{
       document.querySelectorAll('#quickZoneList input[type="checkbox"]').forEach(input=>{ input.checked = false; });
     });
+    el('quickStopAllBtn')?.addEventListener('click', (event)=>stopAllIrrigation(event.currentTarget));
     el('newProgramBtn')?.addEventListener('pointerdown', (event)=>{
       event.preventDefault();
       event.stopPropagation();
@@ -2289,41 +2323,7 @@
     el('newProgramSave')?.addEventListener('click', createProgramFromPane);
     const stopAllBtnEl = el("stopAllBtn");
     if(stopAllBtnEl){
-      stopAllBtnEl.addEventListener("click", async ()=>{
-        try{
-          stopAllBtnEl.disabled = true;
-          window.__optimisticZones = {};
-          window.__suppressRefresh = false;
-
-          // prova a fermare tutte le zone accese usando lo stato corrente
-          let stoppedCount = 0;
-          try{
-            const state = await apiGet('/api/irrigazione/state');
-            const activeZones = (state.zones || []).filter(z => {
-              if(z.is_on) return true;
-              const rem = (z.remaining_raw || '').toString();
-              if(rem && !['0','0:00','00:00','0:00:00','00:00:00'].includes(rem.trim())) return true;
-              const pctNum = Number(z.percent);
-              return !Number.isNaN(pctNum) && pctNum > 0;
-            });
-            for(const z of activeZones){
-              try{ await apiPost('/api/irrigazione/zone/stop', { zone_id: z.id, entity_id: z.switch || z.switch_entity || z.switch_entity_id }); stoppedCount++; }
-              catch(_e){ /* continua con le altre */ }
-            }
-          }catch(_){ /* se fallisce, andiamo comunque sullo stop_all */ }
-
-          // chiama comunque gli endpoint globali/legacy
-          try{ await apiPost('/api/irrigazione/stop_all', {}); }
-          catch(_){ await apiPost('/api/irrigazione/zone/stop_all', {}); }
-
-          toast(stoppedCount > 0 ? `STOP TUTTO (${stoppedCount} zone)` : 'STOP TUTTO');
-          setTimeout(()=>refresh(true), 300);
-        } catch(e){
-          toast('Errore STOP: ' + e.message);
-        } finally {
-          stopAllBtnEl.disabled = false;
-        }
-      });
+      stopAllBtnEl.addEventListener("click", (event)=>stopAllIrrigation(event.currentTarget));
     }
 
     refresh();

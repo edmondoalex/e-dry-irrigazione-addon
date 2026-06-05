@@ -1,3 +1,12 @@
+## 10.5.5
+- Corretto `Irriga ora`: la durata scelta viene passata a `e_dry.start_zone_for`.
+- Con piu zone selezionate l'add-on esegue una sequenza reale: ogni zona resta attiva per i minuti scelti prima di passare alla successiva.
+- `STOP TUTTO` cancella anche la sequenza rapida in corso.
+
+## 10.5.4
+- Aggiunto pulsante `STOP TUTTO` direttamente nel riquadro `Irriga ora`, comodo soprattutto su smartphone.
+- Unificata la logica di stop totale tra menu e riquadro rapido.
+
 ## 10.5.3
 - Corretto layout smartphone: Zone e Programmi ora vanno in una sola colonna e `Irriga ora` non viene piu schiacciato.
 - Migliorato il wrapping dei testi lunghi nelle card programma su schermi stretti.
