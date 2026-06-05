@@ -1,3 +1,7 @@
+## 10.5.8
+- Aggiunto `Test impianto`: esegue tutte le zone in sequenza per 30 secondi ciascuna.
+- La sequenza manuale ora supporta anche durate sotto 1 minuto per funzioni diagnostiche.
+
 ## 10.5.7
 - Aggiunto pannello `Programma in corso` con programma, zona corrente, residuo, prossima zona e barra avanzamento.
 - Aggiunti comandi `Salta zona` e `Stop programma` nella sezione Programmi.

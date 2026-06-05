@@ -19,7 +19,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.5.7"
+VERSION = "10.5.8"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -1755,6 +1755,7 @@ def zone_start():
     duration = _safe_float(data.get('duration') or data.get('minutes'))
     try:
         if duration is not None and duration > 0:
+            duration = max(0.1, min(30.0, float(duration)))
             ha_call_service('e_dry', 'start_zone_for', {'zone_id': int(zone_id), 'minutes': float(duration)})
             return jsonify({"version": VERSION, 'ok': True, 'zone_id': int(zone_id), 'minutes': float(duration), 'via': 'e_dry.start_zone_for'})
         ha_call_service('e_dry', 'start_zone', {'zone_id': int(zone_id)})
@@ -1839,7 +1840,7 @@ def quick_sequence_start():
         return jsonify({"version": VERSION, "error": "seleziona almeno una zona"}), 400
     if minutes is None or minutes <= 0:
         return jsonify({"version": VERSION, "error": "durata non valida"}), 400
-    minutes = max(1.0, min(30.0, float(minutes)))
+    minutes = max(0.1, min(30.0, float(minutes)))
     clean_zones = []
     for item in zones:
         zid = _safe_int((item or {}).get('zone_id') if isinstance(item, dict) else item)

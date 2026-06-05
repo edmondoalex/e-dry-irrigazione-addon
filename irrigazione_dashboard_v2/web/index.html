@@ -590,7 +590,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.5.7</span>
+        <span class="pill" id="addonVersion">v10.5.8</span>
       </div>
       <div class="weather-header-brand"><img src="e-konex-label.png" alt="EKONEX"></div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
@@ -729,6 +729,7 @@
             <button type="button" class="pill-btn quick-min" data-min="10">10 min</button>
             <button type="button" class="pill-btn quick-min" data-min="15">15 min</button>
             <button type="button" class="primary" id="quickStartBtn">Irriga ora</button>
+            <button type="button" class="pill-btn" id="quickTestBtn">Test impianto</button>
             <button type="button" class="danger" id="quickStopAllBtn">STOP TUTTO</button>
           </div>
           <div class="quick-sequence" id="quickSequencePanel" hidden>
@@ -1411,6 +1412,38 @@
         await refresh(true);
       }finally{
         if(startBtn) startBtn.disabled = false;
+      }
+    }
+
+    async function startSystemTest(){
+      const listEl = el('quickZoneList');
+      const testBtn = el('quickTestBtn');
+      const zones = Array.from(listEl?.querySelectorAll('input[type="checkbox"]') || []).map(input=>({
+        zone_id: Number(input.value),
+        entity_id: input.dataset.entity || null
+      })).filter(item=>Number.isFinite(item.zone_id));
+      if(!zones.length){
+        toast('Nessuna zona disponibile per il test');
+        return;
+      }
+      const ok = window.confirm(`Avvia test impianto su ${zones.length} zone? Ogni zona restera attiva per 30 secondi.`);
+      if(!ok) return;
+      try{
+        if(testBtn) testBtn.disabled = true;
+        window.__optimisticZones = window.__optimisticZones || {};
+        zones.forEach(item=>{
+          window.__optimisticZones[item.zone_id] = { state: 'on', ts: Date.now() };
+        });
+        window.__suppressRefresh = true;
+        await apiPost('/api/irrigazione/sequence/start', { zones, duration: 0.5 });
+        toast(`Test impianto avviato: ${zones.length} zone, 30 sec ciascuna`);
+        setTimeout(()=>{ window.__suppressRefresh = false; refresh(true); }, 900);
+      }catch(e){
+        window.__suppressRefresh = false;
+        toast('Errore test impianto: ' + (e.message || e));
+        await refresh(true);
+      }finally{
+        if(testBtn) testBtn.disabled = false;
       }
     }
 
@@ -2421,6 +2454,7 @@
       document.querySelectorAll('#quickZoneList input[type="checkbox"]').forEach(input=>{ input.checked = false; });
     });
     el('quickStopAllBtn')?.addEventListener('click', (event)=>stopAllIrrigation(event.currentTarget));
+    el('quickTestBtn')?.addEventListener('click', ()=>startSystemTest());
     el('quickSkipBtn')?.addEventListener('click', async (event)=>{
       try{
         event.currentTarget.disabled = true;
