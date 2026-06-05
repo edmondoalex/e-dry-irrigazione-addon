@@ -1,3 +1,7 @@
+## 10.5.14
+- Riorganizzato `Irriga ora` per allargare la lista zone invece di allungarla verticalmente.
+- Ridotto lo spazio vuoto nel pannello manuale e resa la disposizione piu bilanciata su desktop e mobile.
+
 ## 10.5.13
 - Migliorato il riquadro `Irriga ora`: lista zone piu grande, responsive e con scrollbar in stile dashboard.
 - Stilizzati gli slider durata zona per evitare controlli browser grezzi.
