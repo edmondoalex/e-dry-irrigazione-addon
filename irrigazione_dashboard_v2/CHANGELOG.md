@@ -1,3 +1,7 @@
+## 10.5.1
+- Aggiunto riquadro `Irriga ora` sopra le zone con scelta zona, durata personalizzata e scorciatoie 5/10/15 minuti.
+- Mantenuti invariati i pulsanti `Avvia` e `Stop` dentro ogni card zona.
+
 ## 10.5.0
 - Rese piu leggibili le card programma con frasi naturali: partenza, zone irrigate e pausa tra zone.
 - Aggiunto badge stato programma `Attivo` / `Disattivato`.
