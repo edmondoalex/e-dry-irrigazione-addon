@@ -35,3 +35,4 @@
 - Bump prototipo add-on a `10.4.0`: aggiunta creazione programmi da dashboard add-on tramite servizio component `e_dry.create_program`.
 - Bump prototipo add-on a `10.4.1`: tradotto Score/ET0 del ragionamento SmartCalc in etichette comprensibili.
 - Bump prototipo add-on a `10.4.2`: aggiunta eliminazione programmi da dashboard con conferma.
+- Bump prototipo add-on a `10.5.0`: rese piu leggibili le card programma con frasi naturali e badge stato.

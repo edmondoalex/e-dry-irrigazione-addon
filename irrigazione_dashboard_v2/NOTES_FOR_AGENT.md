@@ -29,3 +29,4 @@ Ogni volta che fai modifiche a questo addon:
 - 2026-06-05: bump versione prototipo a `10.4.0`; aggiunta creazione programmi da add-on tramite `e_dry.create_program`.
 - 2026-06-05: bump versione prototipo a `10.4.1`; tradotto il ragionamento SmartCalc in frasi semplici per utenti finali.
 - 2026-06-05: bump versione prototipo a `10.4.2`; aggiunta eliminazione programmi da dashboard con conferma.
+- 2026-06-05: bump versione prototipo a `10.5.0`; rese piu leggibili le card programma con frasi naturali e badge stato.

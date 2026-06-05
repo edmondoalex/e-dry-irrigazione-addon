@@ -1,3 +1,7 @@
+## 10.5.0
+- Rese piu leggibili le card programma con frasi naturali: partenza, zone irrigate e pausa tra zone.
+- Aggiunto badge stato programma `Attivo` / `Disattivato`.
+
 ## 10.4.2
 - Aggiunto pulsante `Elimina` sui programmi con conferma prima della cancellazione.
 

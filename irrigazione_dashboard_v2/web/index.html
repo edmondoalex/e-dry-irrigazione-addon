@@ -292,6 +292,12 @@
     .days-grid,.zones-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
     .days-grid label,.zones-grid label{display:flex;flex-direction:row;align-items:center;gap:6px;font-weight:600}
     .pill-btn{border-radius:999px;padding:8px 12px}
+    .program-summary{display:flex;flex-direction:column;gap:7px}
+    .program-status{padding:5px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.20);font-size:11px;color:var(--muted);white-space:nowrap}
+    .program-status.on{color:#b9ffe1;border-color:rgba(112,237,207,.30);background:rgba(36,192,166,.16)}
+    .program-line{font-size:13px;line-height:1.35;color:#dffcff}
+    .program-line b{color:#ffffff}
+    .program-muted{font-size:12px;color:#a7ced2;line-height:1.35}
     @media(max-width:640px){.prog-edit{grid-template-columns:1fr}.days-grid,.zones-grid{grid-template-columns:1fr}}
     .small{font-size:12px;color:var(--muted)}
     .toast{
@@ -510,7 +516,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.4.2</span>
+        <span class="pill" id="addonVersion">v10.5.0</span>
       </div>
       <div class="weather-header-brand"><img src="e-konex-label.png" alt="EKONEX"></div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
@@ -1921,42 +1927,32 @@
           .replace(/^-\s*/g, "")
           .replace(/\s*-$/g, "");
         const displayName = "Programma " + (cleaned || rawName || "");
-        const dayLong = {mon:"Luned&igrave;",tue:"Marted&igrave;",wed:"Mercoled&igrave;",thu:"Gioved&igrave;",fri:"Venerd&igrave;",sat:"Sabato",sun:"Domenica"};
+        const dayLong = {mon:"luned&igrave;",tue:"marted&igrave;",wed:"mercoled&igrave;",thu:"gioved&igrave;",fri:"venerd&igrave;",sat:"sabato",sun:"domenica"};
         const pauseVal = (p.pause_minutes != null ? p.pause_minutes : (p.pause_minuti ?? ""));
         const timeVal = (p.schedule && /^\d{1,2}:\d{2}/.test(p.schedule)) ? p.schedule : ((p.time && /^\d{1,2}:\d{2}/.test(p.time)) ? p.time : "");
         const timeDisplay = timeVal || (p.schedule || p.time || "");
         const initialEnabled = (p.program_state === "on" || p.program_state === true || p.enabled === true);
+        const daysText = daysList && daysList.length ? daysList.map(d=>dayLong[d] || d).join(', ') : 'nessun giorno selezionato';
+        const zonesText = zonesList && zonesList.length ? zonesList.map(zid=>zoneMap[String(zid)] || zid).join(', ') : 'nessuna zona selezionata';
+        const startText = timeDisplay ? `Parte ${daysText} alle ${timeDisplay}` : `Giorni: ${daysText}`;
+        const pauseText = pauseVal !== "" ? `Pausa tra zone: ${pauseVal} min` : 'Nessuna pausa impostata';
 
         prog.innerHTML = `
           <div class="row" style="align-items:flex-start;gap:10px">
-            <div>
+            <div class="program-summary">
               <div style="font-weight:800;font-size:15px">${displayName}</div>
-              <div class="small">ID: ${p.program_id}</div>
+              <div class="program-line">${startText}</div>
+              <div class="program-line">Irriga: <b>${zonesText}</b></div>
+              <div class="program-muted">${pauseText}</div>
             </div>
-            <div class="row" style="gap:8px;align-items:center">
+            <div class="row" style="gap:8px;align-items:center;justify-content:flex-end">
+              <span class="program-status ${initialEnabled ? 'on' : ''}">${initialEnabled ? 'Attivo' : 'Disattivato'}</span>
               <label class="small" style="display:flex;align-items:center;gap:6px">
                 <input type="checkbox" class="prog-enabled-inline" ${initialEnabled ? 'checked' : ''}/>
                 <span>Abilitato</span>
               </label>
-              <div class="small" style="text-align:right">${timeDisplay ? `Ora: <b>${timeDisplay}</b>` : ''}</div>
             </div>
           </div>
-
-          <div class="row" style="flex-wrap:wrap;gap:8px">
-            <div class="small">Giorni:</div>
-            <div class="small">
-              ${daysList && daysList.length ? daysList.map(d=>dayLong[d] || d).join('<br>') : '-'}
-            </div>
-          </div>
-
-          <div class="row" style="flex-wrap:wrap;gap:8px">
-            <div class="small">Zone:</div>
-            <div class="small">
-              ${zonesList && zonesList.length ? zonesList.map(zid=>zoneMap[String(zid)] || zid).join('<br>') : '-'}
-            </div>
-          </div>
-
-          <div class="small">Pausa tra zone: <b>${pauseVal !== "" ? pauseVal + ' min' : '-'}</b></div>
           <div class="bar" title="Progresso">
             <div style="width:${pct == null ? 0 : pct}%"></div>
           </div>
