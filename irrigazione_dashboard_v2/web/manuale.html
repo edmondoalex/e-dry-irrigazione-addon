@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Manuale e-Dry Irrigazione</title>
+  <style>
+    :root{--bg:#071f28;--card:#0b3540;--txt:#efffff;--muted:#a7ced2;--accent:#64e4cf;--warn:#ffd27c;--danger:#ff8a8a}
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(160deg,#082c36,#0b4b55);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.55}
+    main{max-width:980px;margin:0 auto;padding:18px}
+    header{position:sticky;top:0;background:rgba(7,31,40,.92);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.12);z-index:2}
+    header .inner{max-width:980px;margin:0 auto;padding:14px 18px;display:flex;gap:12px;align-items:center;justify-content:space-between}
+    h1{font-size:24px;margin:0}
+    h2{font-size:19px;margin:26px 0 10px;color:#dffcff}
+    h3{font-size:16px;margin:18px 0 8px;color:#fff}
+    p{margin:8px 0;color:#dbeff2}
+    a,button.link{color:var(--accent)}
+    .card{background:rgba(5,28,38,.72);border:1px solid rgba(135,214,224,.20);border-radius:16px;padding:15px;margin:12px 0;box-shadow:0 12px 26px rgba(0,0,0,.22)}
+    .toc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .toc a{display:block;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.06);text-decoration:none}
+    ul,ol{padding-left:22px}
+    li{margin:6px 0;color:#dbeff2}
+    code{background:rgba(0,0,0,.24);padding:2px 5px;border-radius:6px}
+    .ok{color:#9cffcf;font-weight:800}
+    .warn{color:var(--warn);font-weight:800}
+    .danger{color:var(--danger);font-weight:800}
+    .pill{display:inline-block;padding:3px 8px;border-radius:999px;background:rgba(100,228,207,.14);border:1px solid rgba(100,228,207,.25);font-size:12px;color:#dffcff}
+    .note{border-left:4px solid var(--warn);padding:8px 12px;background:rgba(255,210,124,.08);border-radius:8px}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    th,td{border-bottom:1px solid rgba(255,255,255,.10);padding:8px;text-align:left;vertical-align:top}
+    th{color:#b9f5ef}
+    @media(max-width:700px){.toc{grid-template-columns:1fr}header .inner{align-items:flex-start;flex-direction:column}main{padding:12px}h1{font-size:21px}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="inner">
+      <div>
+        <h1>Manuale e-Dry Irrigazione</h1>
+        <div class="pill">Guida utente dashboard add-on</div>
+      </div>
+      <a href="index.html">Torna alla dashboard</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Indice</h2>
+      <div class="toc">
+        <a href="#panoramica">Panoramica</a>
+        <a href="#meteo">Meteo e SmartCalc</a>
+        <a href="#zone">Zone</a>
+        <a href="#irriga-ora">Irriga ora</a>
+        <a href="#sequenze">Sequenze e comandi</a>
+        <a href="#programmi">Programmi</a>
+        <a href="#test">Test impianto</a>
+        <a href="#menu">Menu hamburger</a>
+        <a href="#admin">Tarature meteo</a>
+        <a href="#problemi">Problemi comuni</a>
+      </div>
+    </section>
+
+    <section id="panoramica" class="card">
+      <h2>1. Panoramica dashboard</h2>
+      <p>La dashboard serve per controllare l'impianto di irrigazione e-Dry da Home Assistant in modo semplice.</p>
+      <p>In alto trovi lo stato generale dell'impianto:</p>
+      <ul>
+        <li><b>Stato impianto</b>: indica se tutto e fermo o se una zona sta irrigando.</li>
+        <li><b>Zone</b>: numero di zone configurate.</li>
+        <li><b>Programmi</b>: indica se i programmi sono attivi o sospesi.</li>
+        <li><b>SmartCalc</b>: fattore meteo usato per aumentare o ridurre le durate.</li>
+        <li><b>Prossima irrigazione</b>: mostra quando partira il prossimo programma automatico.</li>
+      </ul>
+      <p class="note">Se qualcosa sembra non aggiornarsi, usa <b>Aggiorna</b> dal menu hamburger oppure ricarica la pagina.</p>
+    </section>
+
+    <section id="meteo" class="card">
+      <h2>2. Meteo e SmartCalc</h2>
+      <p>SmartCalc adatta le durate in base al meteo, alla regolazione stagionale e al tipo di zona.</p>
+      <table>
+        <tr><th>Voce</th><th>Cosa significa</th></tr>
+        <tr><td>Fattore Smart Calc</td><td>Moltiplicatore usato sulle durate. Esempio: <code>1.30</code> significa durata aumentata del 30%.</td></tr>
+        <tr><td>Condizioni per irrigare</td><td>Valutazione semplice: <b>Buone</b>, <b>Discrete</b>, <b>Sfavorevoli</b>.</td></tr>
+        <tr><td>Quanto asciuga il terreno</td><td>Indicazione ET0 tradotta: <b>Basso</b>, <b>Medio</b>, <b>Alto</b>.</td></tr>
+        <tr><td>Stato Meteo Irrigazione</td><td>Dice se il meteo permette o blocca/riduce l'irrigazione.</td></tr>
+      </table>
+      <h3>Regolazione Stagionale</h3>
+      <p>La barra <b>Regolazione Stagionale</b> permette di correggere manualmente tutte le durate.</p>
+      <ul>
+        <li><code>100%</code>: durata normale.</li>
+        <li><code>80%</code>: durata ridotta.</li>
+        <li><code>120%</code>: durata aumentata.</li>
+      </ul>
+    </section>
+
+    <section id="zone" class="card">
+      <h2>3. Zone</h2>
+      <p>Ogni zona rappresenta una parte dell'impianto: prato, vasi, siepe, aiuola, orto, ecc.</p>
+      <h3>Pulsanti principali</h3>
+      <ul>
+        <li><b>Avvia</b>: avvia solo quella zona.</li>
+        <li><b>Stop</b>: ferma solo quella zona.</li>
+        <li><b>Ignora meteo</b>: la zona non applica il blocco/riduzione meteo SmartCalc.</li>
+      </ul>
+      <h3>Durate e barre</h3>
+      <ul>
+        <li><b>Residuo</b>: tempo rimanente quando la zona e attiva.</li>
+        <li><b>Durata</b>: durata configurata della zona.</li>
+        <li><b>Smart Meteo</b>: durata dopo calcolo meteo.</li>
+        <li><b>Effettiva</b>: durata finale realmente usata.</li>
+      </ul>
+      <h3>Rinominare una zona</h3>
+      <p>Clicca sul nome della zona o sull'icona matita, scrivi il nuovo nome e premi <b>Salva</b>.</p>
+    </section>
+
+    <section id="irriga-ora" class="card">
+      <h2>4. Irriga ora</h2>
+      <p>Serve per irrigare manualmente una o piu zone, senza modificare i programmi automatici.</p>
+      <ol>
+        <li>Seleziona una o piu zone.</li>
+        <li>Scegli la durata con <b>5 min</b>, <b>10 min</b>, <b>15 min</b> oppure scrivi i minuti.</li>
+        <li>Premi <b>Irriga ora</b>.</li>
+      </ol>
+      <p><b>Importante:</b> i pulsanti 5/10/15 minuti impostano solo la durata. L'irrigazione parte solo quando premi <b>Irriga ora</b>.</p>
+      <p>Se selezioni piu zone, la dashboard le esegue in sequenza: prima una zona, poi la successiva.</p>
+    </section>
+
+    <section id="sequenze" class="card">
+      <h2>5. Sequenze e comandi professionali</h2>
+      <p>Quando e attiva una sequenza manuale compare un pannello simile a una centralina professionale.</p>
+      <ul>
+        <li><b>In corso</b>: zona attualmente aperta.</li>
+        <li><b>Manca</b>: conto alla rovescia della zona corrente.</li>
+        <li><b>Poi</b>: prossima zona che partira.</li>
+        <li><b>Salta zona</b>: ferma la zona corrente e passa alla successiva.</li>
+        <li><b>STOP TUTTO</b>: ferma ogni irrigazione e annulla la sequenza.</li>
+      </ul>
+      <p class="note">Usa <b>STOP TUTTO</b> in caso di emergenza, perdita acqua, zona sbagliata o test da interrompere.</p>
+    </section>
+
+    <section id="programmi" class="card">
+      <h2>6. Programmi automatici</h2>
+      <p>I programmi sono le irrigazioni programmate per giorni e orari specifici.</p>
+      <h3>Programmi abilitati</h3>
+      <p>Se il selettore <b>Programmi abilitati</b> e spento, i programmi automatici non partono.</p>
+      <h3>Creare un programma</h3>
+      <ol>
+        <li>Premi <b>Nuovo programma</b>.</li>
+        <li>Inserisci nome, ora di inizio, giorni e zone.</li>
+        <li>Imposta la pausa tra zone se serve.</li>
+        <li>Premi <b>Crea programma</b>.</li>
+      </ol>
+      <h3>Modificare o eliminare</h3>
+      <ul>
+        <li><b>Modifica</b>: cambia nome, ora, giorni, zone o pausa.</li>
+        <li><b>Elimina</b>: rimuove il programma dopo conferma.</li>
+        <li><b>Abilitato</b>: attiva/disattiva solo quel programma.</li>
+      </ul>
+      <h3>Programma in corso</h3>
+      <p>Quando un programma sta irrigando, compare il pannello <b>Programma in corso</b>:</p>
+      <ul>
+        <li>nome del programma</li>
+        <li>zona attuale</li>
+        <li>tempo residuo</li>
+        <li>prossima zona</li>
+        <li><b>Salta zona</b></li>
+        <li><b>Stop programma</b></li>
+      </ul>
+    </section>
+
+    <section id="test" class="card">
+      <h2>7. Test impianto</h2>
+      <p><b>Test impianto</b> serve per controllare rapidamente elettrovalvole e irrigatori.</p>
+      <p>Quando premi il pulsante, la dashboard chiede conferma e poi esegue tutte le zone per <b>30 secondi ciascuna</b>.</p>
+      <p>Durante il test puoi usare:</p>
+      <ul>
+        <li><b>Salta zona</b>: passa alla prossima zona.</li>
+        <li><b>STOP TUTTO</b>: interrompe subito il test.</li>
+      </ul>
+      <p class="warn">Durante il test resta vicino all'impianto: serve proprio per verificare se qualcosa perde, non si apre o bagna nel punto sbagliato.</p>
+    </section>
+
+    <section id="menu" class="card">
+      <h2>8. Menu hamburger</h2>
+      <p>Il menu in alto a destra contiene funzioni di servizio.</p>
+      <table>
+        <tr><th>Pulsante</th><th>Uso</th></tr>
+        <tr><td>Manuale</td><td>Apre questa guida.</td></tr>
+        <tr><td>Export</td><td>Scarica lo stato tecnico della dashboard in formato testo/JSON.</td></tr>
+        <tr><td>Entita</td><td>Apre la pagina diagnostica delle entita Home Assistant.</td></tr>
+        <tr><td>Eventi</td><td>Mostra il registro degli eventi dell'impianto.</td></tr>
+        <tr><td>Tarature meteo</td><td>Apre impostazioni avanzate meteo/SmartCalc.</td></tr>
+        <tr><td>Aggiorna</td><td>Forza il refresh della dashboard.</td></tr>
+        <tr><td>STOP TUTTO</td><td>Ferma subito ogni irrigazione.</td></tr>
+      </table>
+    </section>
+
+    <section id="admin" class="card">
+      <h2>9. Tarature meteo e preset zone</h2>
+      <p>Questa sezione e pensata per installatore o utente esperto.</p>
+      <h3>Tarature meteo</h3>
+      <ul>
+        <li><b>Abilita SmartCalc</b>: attiva/disattiva il calcolo meteo intelligente.</li>
+        <li><b>Endpoint meteo e-SunMind</b>: indirizzo da cui arrivano i dati meteo.</li>
+        <li><b>Pioggia prevista</b>: soglia oltre cui l'irrigazione viene saltata.</li>
+        <li><b>Vento</b>: soglia oltre cui puo essere sconsigliata/bloccata l'irrigazione.</li>
+        <li><b>Temperatura gelo</b>: blocco sotto una certa temperatura.</li>
+      </ul>
+      <h3>Preset zone</h3>
+      <p>I preset indicano il tipo di zona: prato, vasi, orto, alberi, ecc. Ogni preset puo avere un moltiplicatore diverso.</p>
+      <p>Esempio: i vasi possono richiedere piu acqua del prato, quindi il preset puo aumentare la durata.</p>
+    </section>
+
+    <section id="problemi" class="card">
+      <h2>10. Problemi comuni</h2>
+      <h3>Premo Avvia ma la zona parte per pochi secondi</h3>
+      <p>Controlla che non ci sia un'altra sequenza o programma in corso. Usa <b>STOP TUTTO</b> e riprova.</p>
+      <h3>HACS/Home Assistant non vede aggiornamenti</h3>
+      <p>Aspetta qualche minuto, poi aggiorna HACS. Per il component servono tag/release GitHub; per l'add-on serve aggiornare il repository add-on.</p>
+      <h3>Il meteo blocca una zona che voglio irrigare comunque</h3>
+      <p>Attiva <b>Ignora meteo</b> su quella zona oppure usa <b>Irriga ora</b> per un avvio manuale.</p>
+      <h3>Vedo nomi strani o zone mancanti</h3>
+      <p>Apri <b>Entita</b> dal menu hamburger e controlla che Home Assistant esponga correttamente le entita e-Dry.</p>
+      <h3>Non so cosa premere</h3>
+      <p>Per uso normale basta:</p>
+      <ol>
+        <li>Lascia <b>Programmi abilitati</b> acceso.</li>
+        <li>Usa <b>Irriga ora</b> solo per irrigazioni extra.</li>
+        <li>Usa <b>STOP TUTTO</b> se qualcosa non va.</li>
+      </ol>
+    </section>
+  </main>
+</body>
+</html>

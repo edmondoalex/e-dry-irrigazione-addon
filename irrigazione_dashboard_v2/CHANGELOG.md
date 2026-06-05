@@ -1,3 +1,7 @@
+## 10.5.9
+- Aggiunta pagina `Manuale` apribile dal menu hamburger.
+- Le tarature meteo richiedono la password a ogni apertura e il popup si apre solo dopo validazione admin.
+
 ## 10.5.8
 - Aggiunto `Test impianto`: esegue tutte le zone in sequenza per 30 secondi ciascuna.
 - La sequenza manuale ora supporta anche durate sotto 1 minuto per funzioni diagnostiche.

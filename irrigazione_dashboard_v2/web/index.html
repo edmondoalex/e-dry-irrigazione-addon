@@ -590,7 +590,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.5.8</span>
+        <span class="pill" id="addonVersion">v10.5.9</span>
       </div>
       <div class="weather-header-brand"><img src="e-konex-label.png" alt="EKONEX"></div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
@@ -600,6 +600,7 @@
         <div class="menu-dropdown">
           <button class="menu-toggle icon" id="menuToggle" aria-haspopup="true" aria-expanded="false" aria-label="Apri menu"><span class="hamburger-icon" aria-hidden="true"><span></span><span></span><span></span></span></button>
           <div class="menu-content" id="menuContent">
+            <button id="manualBtn" title="Apri manuale utente" class="icon" aria-label="Apri manuale">Manuale</button>
             <button id="exportBtn" title="Esporta JSON" class="icon" aria-label="Esporta JSON">Export</button>
             <button id="entitiesBtn" title="Apri debug entita (porta 1978)" class="icon" aria-label="Apri debug entita">Entita</button>
             <button id="eventLogBtn" title="Apri registro eventi" class="icon" aria-label="Apri registro eventi">Eventi</button>
@@ -990,7 +991,7 @@
       min_temp: 5,
       wind_threshold: 20
     };
-    let weatherSettingsAdminPassword = sessionStorage.getItem('eDryWeatherAdminPassword') || '';
+    let weatherSettingsAdminPassword = '';
     let zoneProfilesState = { profiles: [], custom_profiles: [], zones: [] };
 
     function setWeatherSettingsForm(settings){
@@ -1146,21 +1147,17 @@
     async function openWeatherSettings(){
       const modal = el('weatherSettingsModal');
       if(!modal) return;
-      if(!weatherSettingsAdminPassword){
-        const pwd = window.prompt('Password admin tarature meteo');
-        if(!pwd) return;
-        weatherSettingsAdminPassword = pwd;
-        sessionStorage.setItem('eDryWeatherAdminPassword', pwd);
-      }
-      modal.classList.remove('eventlog-hidden');
-      document.body.classList.add('modal-open');
+      const pwd = window.prompt('Password admin tarature meteo');
+      if(!pwd) return;
+      weatherSettingsAdminPassword = pwd;
       try{
         const data = await apiGet('/api/meteo/weather_settings?admin_password=' + encodeURIComponent(weatherSettingsAdminPassword));
         setWeatherSettingsForm(data.settings || {});
         await loadZoneProfiles();
+        modal.classList.remove('eventlog-hidden');
+        document.body.classList.add('modal-open');
       }catch(e){
         if(String(e.message || e).includes('admin_password')){
-          sessionStorage.removeItem('eDryWeatherAdminPassword');
           weatherSettingsAdminPassword = '';
         }
         toast('Errore tarature: ' + (e.message || e));
@@ -1171,6 +1168,7 @@
     function closeWeatherSettings(){
       el('weatherSettingsModal')?.classList.add('eventlog-hidden');
       document.body.classList.remove('modal-open');
+      weatherSettingsAdminPassword = '';
     }
 
     // When true, periodic refresh() will be suppressed to avoid DOM rebuilds
@@ -2515,6 +2513,7 @@
       const searchBox = el('searchBox');
       const compactToggle = el('compactToggle');
       const exportBtn = el('exportBtn');
+      const manualBtn = el('manualBtn');
       const entitiesBtn = el('entitiesBtn');
 
       const eventLogBtn = el("eventLogBtn");
@@ -2770,6 +2769,11 @@
         });
       }
       if(searchBox) searchBox.addEventListener('input', ()=>{ applySearchFilter() });
+
+      // Export TXT button -> download api state
+      manualBtn?.addEventListener('click', ()=>{
+        window.open('manuale.html', '_blank', 'noopener');
+      });
 
       // Export TXT button -> download api state
       exportBtn?.addEventListener('click', async ()=>{

@@ -19,13 +19,14 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.5.8"
+VERSION = "10.5.9"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
 
 HERE = Path(__file__).resolve().parent
 INDEX_HTML = HERE / "index.html"
+MANUAL_HTML = HERE / "manuale.html"
 
 # cache ultimo stato zone per risposte vuote/fallite (anti-flicker)
 LAST_STATE = {"zones": None, "active_zone": None}
@@ -159,6 +160,13 @@ def index_page():
         return jsonify({
         "version": VERSION,"error": "index_missing", "detail": str(INDEX_HTML)}), 500
     return send_file(str(INDEX_HTML), mimetype="text/html; charset=utf-8")
+
+@app.route("/manuale")
+@app.route("/manuale.html")
+def manual_page():
+    if not MANUAL_HTML.exists():
+        return jsonify({"version": VERSION, "error": "manual_missing", "detail": str(MANUAL_HTML)}), 500
+    return send_file(str(MANUAL_HTML), mimetype="text/html; charset=utf-8")
 
 @app.route("/e-dry.png")
 def logo_png():

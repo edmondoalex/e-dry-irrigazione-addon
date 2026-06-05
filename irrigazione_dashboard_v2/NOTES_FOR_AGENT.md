@@ -38,3 +38,4 @@ Ogni volta che fai modifiche a questo addon:
 - 2026-06-05: bump versione prototipo a `10.5.6`; aggiunto pannello sequenza manuale con zona corrente, residuo, prossima zona e comando `Salta zona`.
 - 2026-06-05: bump versione prototipo a `10.5.7`; aggiunto pannello programma in corso con zona corrente/prossima/residuo e comandi `Salta zona`/`Stop programma`.
 - 2026-06-05: bump versione prototipo a `10.5.8`; aggiunto `Test impianto` con sequenza di tutte le zone per 30 secondi ciascuna.
+- 2026-06-05: bump versione prototipo a `10.5.9`; aggiunto manuale utente da hamburger e richiesta password admin a ogni apertura tarature meteo.
