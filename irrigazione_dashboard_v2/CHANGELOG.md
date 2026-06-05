@@ -1,3 +1,7 @@
+## 10.5.3
+- Corretto layout smartphone: Zone e Programmi ora vanno in una sola colonna e `Irriga ora` non viene piu schiacciato.
+- Migliorato il wrapping dei testi lunghi nelle card programma su schermi stretti.
+
 ## 10.5.2
 - `Irriga ora` ora permette di selezionare una o piu zone tramite checkbox.
 - I pulsanti 5/10/15 minuti impostano solo la durata: l'irrigazione parte soltanto premendo `Irriga ora`.
