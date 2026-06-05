@@ -16,7 +16,7 @@ from flask import Flask, request, jsonify, send_file
 import requests
 
 app = Flask(__name__)
-VERSION = "10.5.15"
+VERSION = "10.5.16"
 HERE = Path(__file__).resolve().parent
 INDEX_HTML = HERE / "entities_index.html"
 
@@ -660,6 +660,11 @@ def api_device_weather():
     def _pack(payload):
         payload = payload if isinstance(payload, dict) else {}
         source = payload.get("source")
+        gust_ms = payload.get("wind_gust_ms")
+        if gust_ms is None:
+            gust_ms = payload.get("gust_ms")
+        if gust_ms is None:
+            gust_ms = payload.get("wind_gust_speed_ms")
         out = {
             "source": "e-SunMind",
             "ok": bool(payload.get("available", True)),
@@ -667,14 +672,26 @@ def api_device_weather():
             "age_seconds": payload.get("age_seconds"),
             "last_update": payload.get("last_update"),
             "schema": payload.get("schema"),
+            "station_installed": bool(payload.get("station_installed") or payload.get("station_detected") or source == "local_station"),
         }
         _add(out, "temperature", "sensor.e_sunmind_irrigation_temperature_c", payload.get("temperature_c"), "°C")
+        _add(out, "feels_like", "sensor.e_sunmind_irrigation_feels_like_c", payload.get("feels_like_c"), "°C")
+        _add(out, "dew_point", "sensor.e_sunmind_irrigation_dew_point_c", payload.get("dew_point_c"), "°C")
         _add(out, "humidity", "sensor.e_sunmind_irrigation_humidity_pct", payload.get("humidity_pct"), "%")
         _add(out, "pressure", "sensor.e_sunmind_irrigation_pressure_hpa", payload.get("pressure_hpa"), "hPa")
         _add(out, "wind_speed", "sensor.e_sunmind_irrigation_wind_speed_ms", payload.get("wind_speed_ms"), "m/s")
+        _add(out, "wind_gust", "sensor.e_sunmind_irrigation_wind_gust_ms", gust_ms, "m/s")
+        _add(out, "wind_direction", "sensor.e_sunmind_irrigation_wind_direction_deg", payload.get("wind_direction_deg"), "°")
         _add(out, "rain_rate", "sensor.e_sunmind_irrigation_rain_rate_mm_h", payload.get("rain_rate_mm_h"), "mm/h")
+        _add(out, "rain_1h", "sensor.e_sunmind_irrigation_rain_1h_mm", payload.get("rain_1h_mm"), "mm")
+        _add(out, "rain_today", "sensor.e_sunmind_irrigation_rain_today_mm", payload.get("rain_today_mm"), "mm")
         _add(out, "rain_24h", "sensor.e_sunmind_irrigation_rain_last_24h_mm", payload.get("rain_last_24h_mm"), "mm")
         _add(out, "forecast_rain_24h", "sensor.e_sunmind_irrigation_forecast_rain_24h_mm", payload.get("forecast_rain_24h_mm"), "mm")
+        _add(out, "solar_lux", "sensor.e_sunmind_irrigation_solar_lux", payload.get("solar_lux"), "lx")
+        _add(out, "solar_radiation", "sensor.e_sunmind_irrigation_solar_radiation_w_m2", payload.get("solar_radiation_w_m2"), "W/m²")
+        _add(out, "uv_index", "sensor.e_sunmind_irrigation_uv_index", payload.get("uv_index"), "")
+        _add(out, "vpd", "sensor.e_sunmind_irrigation_vpd_hpa", payload.get("vpd_hpa"), "hPa")
+        _add(out, "et0", "sensor.e_sunmind_irrigation_et0_mm_day", payload.get("et0_mm_day"), "mm/g")
         cond = payload.get("condition") or payload.get("weather_code") or payload.get("irrigation_weather_reason") or payload.get("error")
         if _valid(cond):
             out["condition"] = {"entity_id": "e_sunmind.weather_irrigation", "state": str(cond)}
@@ -704,7 +721,13 @@ def api_device_weather():
         ("humidity", "sensor.e_sunmind_weather_humidity_pct", "%"),
         ("pressure", "sensor.e_sunmind_weather_pressure_hpa", "hPa"),
         ("wind_speed", "sensor.e_sunmind_weather_wind_ms", "m/s"),
+        ("wind_gust", "sensor.e_sunmind_weather_wind_gust_ms", "m/s"),
         ("rain_1h", "sensor.e_sunmind_weather_precip_1h_mm", "mm"),
+        ("rain_today", "sensor.e_sunmind_weather_rain_today_mm", "mm"),
+        ("solar_radiation", "sensor.e_sunmind_weather_solar_radiation_w_m2", "W/m²"),
+        ("uv_index", "sensor.e_sunmind_weather_uv_index", ""),
+        ("vpd", "sensor.e_sunmind_weather_vpd_hpa", "hPa"),
+        ("et0", "sensor.e_sunmind_weather_et0_mm_day", "mm/g"),
     ):
         st = ha_get_state(eid)
         if not st:

@@ -1,3 +1,7 @@
+## 10.5.16
+- Mostrati nella dashboard e-Dry altri dati stazione reale e-SunMind: stazione, raffica vento, pioggia oggi, radiazione, UV, VPD ed ET0.
+- Esteso `/api/device_weather` con i principali parametri meteo professionali quando disponibili.
+
 ## 10.5.15
 - Spostato il campo `Minuti` accanto ai pulsanti `Tutte` e `Nessuna` nel riquadro `Irriga ora`.
 

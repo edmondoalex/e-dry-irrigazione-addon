@@ -45,3 +45,4 @@ Ogni volta che fai modifiche a questo addon:
 - 2026-06-05: bump versione prototipo a `10.5.13`; migliorato layout `Irriga ora`, scrollbar/slider coerenti e rimosso carattere `?` iniziale.
 - 2026-06-05: bump versione prototipo a `10.5.14`; lista zone `Irriga ora` allargata su griglia full width e altezza ridotta.
 - 2026-06-05: bump versione prototipo a `10.5.15`; campo `Minuti` spostato nella riga strumenti accanto a `Tutte`/`Nessuna`.
+- 2026-06-05: bump versione prototipo a `10.5.16`; dashboard mostra piu dati stazione reale e-SunMind e `/api/device_weather` espone nuovi parametri.

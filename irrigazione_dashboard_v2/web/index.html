@@ -615,7 +615,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.5.15</span>
+        <span class="pill" id="addonVersion">v10.5.16</span>
       </div>
       <div class="weather-header-brand"><img src="e-konex-label.png" alt="EKONEX"></div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
@@ -713,6 +713,13 @@
             <div class="weather-metric"><div class="small">Humidity</div><div id="weatherHum">-</div></div>
             <div class="weather-metric"><div class="small">Pressure</div><div id="weatherPress">-</div></div>
             <div class="weather-metric"><div class="small">Wind</div><div id="weatherWind">-</div></div>
+            <div class="weather-metric"><div class="small">Stazione reale</div><div id="weatherStation">-</div></div>
+            <div class="weather-metric"><div class="small">Raffica vento</div><div id="weatherGust">-</div></div>
+            <div class="weather-metric"><div class="small">Pioggia oggi</div><div id="weatherRainToday">-</div></div>
+            <div class="weather-metric"><div class="small">Radiazione</div><div id="weatherSolar">-</div></div>
+            <div class="weather-metric"><div class="small">UV</div><div id="weatherUv">-</div></div>
+            <div class="weather-metric"><div class="small">VPD</div><div id="weatherVpd">-</div></div>
+            <div class="weather-metric"><div class="small">ET0</div><div id="weatherEt0">-</div></div>
           </div>
 
           <div style="margin-top:8px">
@@ -2941,6 +2948,13 @@
     if(data.humidity)   _setText('weatherHum',   (data.humidity.state ?? '-')   + (data.humidity.unit||''));
     if(data.pressure)   _setText('weatherPress', (data.pressure.state ?? '-')   + (data.pressure.unit||''));
     if(data.wind_speed) _setText('weatherWind',  (data.wind_speed.state ?? '-') + (data.wind_speed.unit||''));
+    _setText('weatherStation', data.station_installed ? 'SI' : 'NO');
+    if(data.wind_gust) _setText('weatherGust', (data.wind_gust.state ?? '-') + (data.wind_gust.unit||''));
+    if(data.rain_today) _setText('weatherRainToday', (data.rain_today.state ?? '-') + (data.rain_today.unit||''));
+    if(data.solar_radiation) _setText('weatherSolar', (data.solar_radiation.state ?? '-') + (data.solar_radiation.unit||''));
+    if(data.uv_index) _setText('weatherUv', data.uv_index.state ?? '-');
+    if(data.vpd) _setText('weatherVpd', (data.vpd.state ?? '-') + (data.vpd.unit||''));
+    if(data.et0) _setText('weatherEt0', (data.et0.state ?? '-') + (data.et0.unit||''));
     if(data.temperature){
       const t = (data.temperature.state ?? '-') + (data.temperature.unit||'');
       _setText('weatherTemp', t);
