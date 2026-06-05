@@ -26,3 +26,7 @@
 - Bump prototipo add-on a `10.2.0`: aggiunti riepiloghi prossima irrigazione e decisione SmartCalc.
 - Bump prototipo add-on a `10.2.1`: portate le scritte finali delle zone sopra la decorazione sprinkler.
 - Bump prototipo add-on a `10.2.2`: spostato fisicamente lo sprinkler sotto le scritte e nascosto nelle zone OFF.
+
+## 2026-06-05
+
+- Bump prototipo add-on a `10.3.0`: ripulite card zona con badge preset e metriche durata compatte.

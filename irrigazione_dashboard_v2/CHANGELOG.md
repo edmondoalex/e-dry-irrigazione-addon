@@ -1,3 +1,7 @@
+## 10.3.0
+- Ripulite le card zona: preset e durate sono ora badge/metriche compatti invece di testo in linea.
+- Migliorata la leggibilita della parte bassa delle card e il layout responsive su schermi stretti.
+
 ## 10.2.2
 - Spostata fisicamente la decorazione sprinkler sotto l'area delle scritte delle zone.
 - Lo sprinkler resta nascosto quando la zona e OFF e appare solo durante l'irrigazione.

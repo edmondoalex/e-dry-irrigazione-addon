@@ -227,7 +227,12 @@
     /* sprinkler (stilizzazione) */
     .sprinkler{position:absolute;left:12px;bottom:-28px;width:120px;height:70px;opacity:.95;transform:translateZ(0);z-index:0}
     .zone:not(.on) .sprinkler{display:none}
-    .zone-meta{position:relative;z-index:2}
+    .zone-meta{position:relative;z-index:2;margin-top:12px;display:grid;grid-template-columns:minmax(130px,.9fr) minmax(120px,.75fr) repeat(2,minmax(92px,.65fr));gap:8px;align-items:stretch}
+    .zone-meta .toggle.ignore{min-height:44px;justify-content:center;padding:8px 10px;border-radius:12px}
+    .zone-badge,.zone-metric{min-width:0;border:1px solid rgba(135,214,224,.16);border-radius:12px;background:rgba(3,28,38,.34);padding:8px 10px;display:flex;flex-direction:column;justify-content:center}
+    .zone-badge span,.zone-metric span{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#9fdbe1;white-space:nowrap}
+    .zone-badge b,.zone-metric b{margin-top:3px;font-size:12px;color:#efffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    @media(max-width:760px){.zone-meta{grid-template-columns:1fr 1fr}.zone-meta .toggle.ignore{grid-column:1/-1}}
     .zone .ctrl{position:relative;z-index:3;display:flex;align-items:center;gap:8px;margin-top:10px}
     .zone .zone-dur-range{flex:1}
     .zone .zone-dur-num{width:64px;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);text-align:center}
@@ -498,7 +503,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.2.2</span>
+        <span class="pill" id="addonVersion">v10.3.0</span>
       </div>
       <div class="weather-header-brand"><img src="e-konex-label.png" alt="EKONEX"></div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
@@ -1351,14 +1356,14 @@
             <input class="bar-range" type="range" min="1" max="30" step="1" value="${durationValue != null ? durationValue : 10}" aria-label="Imposta durata zona ${z.id}" style="display:${isOn ? 'none' : 'block'}" />
           </div>
 
-          <div class="zone-meta" style="margin-top:12px; display:flex; gap:18px; flex-wrap:wrap; align-items:center; justify-content:flex-end;">
-            <label class="toggle ignore" style="gap:8px;">
+          <div class="zone-meta">
+            <label class="toggle ignore">
               <input type="checkbox" class="ignore-toggle" data-entity="${z.ignore_meteo_entity || ''}" ${z.ignore_meteo_state === 'on' ? 'checked' : ''} />
               <span>Ignora meteo</span>
             </label>
-            <div class="small">Preset: <b>${profileName}</b> ${profileMult === '-' ? '' : `<b>x${profileMult}</b>`}</div>
-            <div class="small">Durata Smart Meteo: <b>${smartDisplay}</b></div>
-            <div class="small">Durata Effettiva: <b>${effDisplay}</b></div>
+            <div class="zone-badge"><span>Preset</span><b>${profileName}${profileMult === '-' ? '' : ` x${profileMult}`}</b></div>
+            <div class="zone-metric"><span>Smart Meteo</span><b>${smartDisplay}</b></div>
+            <div class="zone-metric"><span>Effettiva</span><b>${effDisplay}</b></div>
           </div>
 
           <div class="sprinkler" aria-hidden="true">
