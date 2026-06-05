@@ -1,3 +1,7 @@
+## 10.5.6
+- Aggiunto pannello `Sequenza manuale` in stile centralina professionale: zona in corso, tempo residuo, prossima zona e barra avanzamento.
+- Aggiunto pulsante `Salta zona` per passare alla zona successiva senza fermare tutta la sequenza.
+
 ## 10.5.5
 - Corretto `Irriga ora`: la durata scelta viene passata a `e_dry.start_zone_for`.
 - Con piu zone selezionate l'add-on esegue una sequenza reale: ogni zona resta attiva per i minuti scelti prima di passare alla successiva.

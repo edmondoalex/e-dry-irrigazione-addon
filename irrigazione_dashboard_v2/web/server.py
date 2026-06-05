@@ -19,7 +19,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.5.5"
+VERSION = "10.5.6"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -34,8 +34,21 @@ LAST_STATE_DIRTY = False
 WS_THREAD_STARTED = False
 QUICK_SEQUENCE_LOCK = threading.Lock()
 QUICK_SEQUENCE_CANCEL = threading.Event()
+QUICK_SEQUENCE_SKIP = threading.Event()
 QUICK_SEQUENCE_THREAD = None
 QUICK_SEQUENCE_ID = 0
+QUICK_SEQUENCE_STATE = {
+    "active": False,
+    "sequence_id": None,
+    "zones": [],
+    "minutes": None,
+    "index": None,
+    "current_zone_id": None,
+    "current_started_at": None,
+    "current_end_at": None,
+    "next_zone_id": None,
+    "status": "idle",
+}
 
 HA_BASE = os.environ.get("HA_BASE", "http://supervisor/core")
 SUPERVISOR_TOKEN = os.environ.get("SUPERVISOR_TOKEN", "")
@@ -328,6 +341,21 @@ def _safe_float(v):
         return float(s)
     except Exception:
         return None
+
+def _quick_sequence_snapshot():
+    with QUICK_SEQUENCE_LOCK:
+        snap = dict(QUICK_SEQUENCE_STATE)
+        snap["zones"] = list(QUICK_SEQUENCE_STATE.get("zones") or [])
+    now = time.time()
+    end_at = snap.get("current_end_at")
+    if snap.get("active") and end_at:
+        try:
+            snap["remaining_seconds"] = max(0, int(float(end_at) - now))
+        except Exception:
+            snap["remaining_seconds"] = None
+    else:
+        snap["remaining_seconds"] = None
+    return snap
 
 def _extract_id_from_attrs(attrs, keys):
     if not isinstance(attrs, dict):
@@ -1577,6 +1605,7 @@ def api_irrigazione_state():
         'manual_adjustment_entity': manual_adjustment_entity,
         'manual_adjustment': manual_adjustment,
         'manual_adjustment_attrs': manual_adjustment_attrs,
+        'quick_sequence': _quick_sequence_snapshot(),
     })
 
 
@@ -1728,10 +1757,10 @@ def zone_start():
         return jsonify({"version": VERSION, 'error': str(e), 'zone_id': zone_id}), 500
 
 
-def _run_quick_sequence(sequence_id, zones, minutes, cancel_event):
+def _run_quick_sequence(sequence_id, zones, minutes, cancel_event, skip_event):
     current_zid = None
     try:
-        for zone in zones:
+        for index, zone in enumerate(zones):
             if cancel_event.is_set():
                 break
             zid = _safe_int(zone.get('zone_id'))
@@ -1739,23 +1768,60 @@ def _run_quick_sequence(sequence_id, zones, minutes, cancel_event):
                 continue
             try:
                 current_zid = int(zid)
+                now = time.time()
+                with QUICK_SEQUENCE_LOCK:
+                    if QUICK_SEQUENCE_STATE.get("sequence_id") == sequence_id:
+                        QUICK_SEQUENCE_STATE.update({
+                            "active": True,
+                            "sequence_id": sequence_id,
+                            "zones": list(zones),
+                            "minutes": float(minutes),
+                            "index": index,
+                            "current_zone_id": current_zid,
+                            "current_started_at": now,
+                            "current_end_at": now + (float(minutes) * 60.0),
+                            "next_zone_id": _safe_int(zones[index + 1].get('zone_id')) if index + 1 < len(zones) else None,
+                            "status": "running",
+                        })
                 ha_call_service('e_dry', 'start_zone_for', {'zone_id': int(zid), 'minutes': float(minutes)})
             except Exception:
                 traceback.print_exc()
                 continue
-            if cancel_event.wait(float(minutes) * 60.0):
-                break
+
+            deadline = time.time() + (float(minutes) * 60.0)
+            cancelled = False
+            while time.time() < deadline:
+                if cancel_event.is_set():
+                    cancelled = True
+                    break
+                if skip_event.is_set():
+                    skip_event.clear()
+                    break
+                time.sleep(min(1.0, max(0.1, deadline - time.time())))
             try:
                 ha_call_service('e_dry', 'stop_zone', {'zone_id': int(zid)})
                 current_zid = None
             except Exception:
                 traceback.print_exc()
+            if cancelled:
+                break
     finally:
         if current_zid is not None:
             try:
                 ha_call_service('e_dry', 'stop_zone', {'zone_id': int(current_zid)})
             except Exception:
                 pass
+        with QUICK_SEQUENCE_LOCK:
+            if QUICK_SEQUENCE_STATE.get("sequence_id") == sequence_id:
+                QUICK_SEQUENCE_STATE.update({
+                    "active": False,
+                    "index": None,
+                    "current_zone_id": None,
+                    "current_started_at": None,
+                    "current_end_at": None,
+                    "next_zone_id": None,
+                    "status": "idle" if not cancel_event.is_set() else "stopped",
+                })
 
 
 @app.route('/api/irrigazione/sequence/start', methods=['POST'])
@@ -1776,20 +1842,44 @@ def quick_sequence_start():
     if not clean_zones:
         return jsonify({"version": VERSION, "error": "nessuna zona valida"}), 400
 
-    global QUICK_SEQUENCE_THREAD, QUICK_SEQUENCE_ID, QUICK_SEQUENCE_CANCEL
+    global QUICK_SEQUENCE_THREAD, QUICK_SEQUENCE_ID, QUICK_SEQUENCE_CANCEL, QUICK_SEQUENCE_SKIP
     with QUICK_SEQUENCE_LOCK:
         QUICK_SEQUENCE_CANCEL.set()
+        QUICK_SEQUENCE_SKIP.set()
         QUICK_SEQUENCE_CANCEL = threading.Event()
+        QUICK_SEQUENCE_SKIP = threading.Event()
         QUICK_SEQUENCE_ID += 1
         seq_id = QUICK_SEQUENCE_ID
+        QUICK_SEQUENCE_STATE.update({
+            "active": True,
+            "sequence_id": seq_id,
+            "zones": list(clean_zones),
+            "minutes": minutes,
+            "index": 0,
+            "current_zone_id": None,
+            "current_started_at": None,
+            "current_end_at": None,
+            "next_zone_id": clean_zones[0].get("zone_id") if clean_zones else None,
+            "status": "queued",
+        })
         QUICK_SEQUENCE_THREAD = threading.Thread(
             target=_run_quick_sequence,
-            args=(seq_id, clean_zones, minutes, QUICK_SEQUENCE_CANCEL),
+            args=(seq_id, clean_zones, minutes, QUICK_SEQUENCE_CANCEL, QUICK_SEQUENCE_SKIP),
             daemon=True,
         )
         QUICK_SEQUENCE_THREAD.start()
 
     return jsonify({"version": VERSION, "ok": True, "sequence_id": seq_id, "zones": clean_zones, "minutes": minutes})
+
+
+@app.route('/api/irrigazione/sequence/skip', methods=['POST'])
+def quick_sequence_skip():
+    with QUICK_SEQUENCE_LOCK:
+        active = bool(QUICK_SEQUENCE_STATE.get("active"))
+    if not active:
+        return jsonify({"version": VERSION, "ok": False, "error": "nessuna sequenza attiva"}), 400
+    QUICK_SEQUENCE_SKIP.set()
+    return jsonify({"version": VERSION, "ok": True})
 
 
 @app.route('/api/irrigazione/zone/stop', methods=['POST'])
@@ -1811,6 +1901,7 @@ def zone_stop():
 @app.route('/api/irrigazione/stop_all', methods=['POST'])
 def stop_all():
     QUICK_SEQUENCE_CANCEL.set()
+    QUICK_SEQUENCE_SKIP.set()
     opts = read_options()
     zones_info_entity = opts.get('zones_info_entity') or 'sensor.e_dry_zones_info'
     errors = []

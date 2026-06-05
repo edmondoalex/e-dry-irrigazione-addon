@@ -348,7 +348,25 @@
     .quick-irrigation-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
     .quick-irrigation .quick-title{font-size:15px;font-weight:800;color:#efffff}
     .quick-irrigation .quick-subtitle{font-size:12px;color:#a7ced2;margin-top:2px}
+    .quick-sequence{
+      grid-column:1/-1;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr)) auto;
+      gap:8px;
+      align-items:center;
+      padding:10px;
+      border-radius:14px;
+      border:1px solid rgba(255,210,124,.26);
+      background:rgba(255,210,124,.08);
+    }
+    .quick-sequence[hidden]{display:none}
+    .quick-sequence-item{min-width:0}
+    .quick-sequence-item span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#ffdca3}
+    .quick-sequence-item b{display:block;margin-top:3px;font-size:13px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .quick-sequence-bar{grid-column:1/-1;height:8px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
+    .quick-sequence-bar div{height:100%;width:0;background:linear-gradient(90deg,#ffd27c,#64e4cf)}
     @media(max-width:760px){.quick-irrigation{grid-template-columns:1fr}.quick-irrigation-actions{justify-content:flex-start}.quick-zone-list{grid-template-columns:1fr}}
+    @media(max-width:760px){.quick-sequence{grid-template-columns:1fr}.quick-sequence-bar{grid-column:1}}
     @media(max-width:640px){.prog-edit{grid-template-columns:1fr}.days-grid,.zones-grid{grid-template-columns:1fr}}
     .small{font-size:12px;color:var(--muted)}
     .toast{
@@ -571,7 +589,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.5.5</span>
+        <span class="pill" id="addonVersion">v10.5.6</span>
       </div>
       <div class="weather-header-brand"><img src="e-konex-label.png" alt="EKONEX"></div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
@@ -711,6 +729,13 @@
             <button type="button" class="pill-btn quick-min" data-min="15">15 min</button>
             <button type="button" class="primary" id="quickStartBtn">Irriga ora</button>
             <button type="button" class="danger" id="quickStopAllBtn">STOP TUTTO</button>
+          </div>
+          <div class="quick-sequence" id="quickSequencePanel" hidden>
+            <div class="quick-sequence-item"><span>In corso</span><b id="quickSequenceCurrent">-</b></div>
+            <div class="quick-sequence-item"><span>Manca</span><b id="quickSequenceRemaining">-</b></div>
+            <div class="quick-sequence-item"><span>Poi</span><b id="quickSequenceNext">-</b></div>
+            <button type="button" class="pill-btn" id="quickSkipBtn">Salta zona</button>
+            <div class="quick-sequence-bar"><div id="quickSequenceFill"></div></div>
           </div>
         </div>
         <div id="zones" class="zones"></div>
@@ -1376,6 +1401,35 @@
       }finally{
         if(startBtn) startBtn.disabled = false;
       }
+    }
+
+    function renderQuickSequence(sequence){
+      const panel = el('quickSequencePanel');
+      if(!panel) return;
+      if(!sequence || !sequence.active){
+        panel.hidden = true;
+        return;
+      }
+      panel.hidden = false;
+      const lookup = window.__zoneLookup || {};
+      const currentId = sequence.current_zone_id;
+      const nextId = sequence.next_zone_id;
+      const currentName = currentId == null ? 'Preparazione' : (lookup[String(currentId)] || `Zona ${currentId}`);
+      const nextName = nextId == null ? 'Fine sequenza' : (lookup[String(nextId)] || `Zona ${nextId}`);
+      const remaining = Number(sequence.remaining_seconds);
+      const total = Math.max(1, Number(sequence.minutes || 0) * 60);
+      const used = Number.isFinite(remaining) ? Math.max(0, Math.min(100, 100 - ((remaining / total) * 100))) : 0;
+      const fmt = (sec)=>{
+        if(!Number.isFinite(sec)) return '-';
+        const s = Math.max(0, Math.floor(sec));
+        const m = Math.floor(s / 60);
+        const r = s % 60;
+        return `${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`;
+      };
+      if(el('quickSequenceCurrent')) el('quickSequenceCurrent').textContent = currentName;
+      if(el('quickSequenceRemaining')) el('quickSequenceRemaining').textContent = fmt(remaining);
+      if(el('quickSequenceNext')) el('quickSequenceNext').textContent = nextName;
+      if(el('quickSequenceFill')) el('quickSequenceFill').style.width = `${used}%`;
     }
 
     function renderZones(zones, activeZone){
@@ -2251,6 +2305,7 @@
         renderSeasonalAdjust(legacy.manual_adjustment_entity, legacy.manual_adjustment, legacy.manual_adjustment_attrs);
         wireSeasonalAdjust();
         renderZones(legacy.zones, legacy.active_zone);
+        renderQuickSequence(legacy.quick_sequence);
         renderPrograms(legacy.programs_enabled, legacy.programs_enabled_entity, legacy.programs, legacy.zones);
         el("rawHint").textContent = "";
       } catch(e){
@@ -2313,6 +2368,18 @@
       document.querySelectorAll('#quickZoneList input[type="checkbox"]').forEach(input=>{ input.checked = false; });
     });
     el('quickStopAllBtn')?.addEventListener('click', (event)=>stopAllIrrigation(event.currentTarget));
+    el('quickSkipBtn')?.addEventListener('click', async (event)=>{
+      try{
+        event.currentTarget.disabled = true;
+        await apiPost('/api/irrigazione/sequence/skip', {});
+        toast('Passo alla prossima zona');
+        setTimeout(()=>refresh(true), 300);
+      }catch(e){
+        toast('Errore salto zona: ' + (e.message || e));
+      }finally{
+        event.currentTarget.disabled = false;
+      }
+    });
     el('newProgramBtn')?.addEventListener('pointerdown', (event)=>{
       event.preventDefault();
       event.stopPropagation();
