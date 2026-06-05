@@ -1,3 +1,6 @@
+## 10.5.11
+- Aggiunto pulsante `Esporta storico` nel popup Eventi per scaricare il registro eventi in CSV.
+
 ## 10.5.10
 - Rinominata la pagina manuale in `Guida utente e-Dry`.
 

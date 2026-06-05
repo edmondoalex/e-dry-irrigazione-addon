@@ -590,7 +590,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.5.10</span>
+        <span class="pill" id="addonVersion">v10.5.11</span>
       </div>
       <div class="weather-header-brand"><img src="e-konex-label.png" alt="EKONEX"></div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
@@ -811,7 +811,10 @@
     <div class="eventlog-box">
       <div class="eventlog-header">
         <div>Registro eventi</div>
-        <button id="btnEventLogClose" class="icon">Chiudi</button>
+        <div class="eventlog-actions">
+          <button id="btnEventLogExport" class="icon">Esporta storico</button>
+          <button id="btnEventLogClose" class="icon">Chiudi</button>
+        </div>
       </div>
       <div class="eventlog-tablewrap">
         <table class="eventlog-table">
@@ -900,7 +903,8 @@
     body.modal-open{overflow:hidden}
     .eventlog-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;overflow:auto;overscroll-behavior:contain;padding:12px;box-sizing:border-box}
     .eventlog-box{max-width:1100px;margin:6vh auto;background:#0f2a1f;border:1px solid rgba(255,255,255,.15);border-radius:16px;overflow:hidden}
-    .eventlog-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:rgba(255,255,255,.06)}
+    .eventlog-header{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;background:rgba(255,255,255,.06)}
+    .eventlog-actions{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
     .eventlog-tablewrap{max-height:70vh;overflow:auto}
     .eventlog-table{width:100%;border-collapse:collapse;font-size:12px;color:var(--txt)}
     .eventlog-table th,
@@ -2519,6 +2523,7 @@
       const eventLogBtn = el("eventLogBtn");
       const eventLogModal = el("eventLogModal");
       const eventLogBody = el("eventLogBody");
+      const btnEventLogExport = el("btnEventLogExport");
       const btnEventLogClose = el("btnEventLogClose");
       const weatherSettingsBtn = el("weatherSettingsBtn");
       const weatherSettingsModal = el("weatherSettingsModal");
@@ -2707,6 +2712,33 @@
         renderEventLog(events);
       }
 
+      async function exportEventLog(){
+        try{
+          await ensureZoneLookup();
+          const data = await apiGet("/api/event_log");
+          const events = Array.isArray(data.events) ? data.events : [];
+          const rows = events.map(normalizeEvent);
+          const escapeCsv = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+          const lines = [
+            ["Ora", "Zona", "Azione", "Dettaglio"].map(escapeCsv).join(","),
+            ...rows.map(r => [r.ts, r.zone, r.action, r.detail].map(escapeCsv).join(","))
+          ];
+          const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          const stamp = new Date().toISOString().slice(0, 10);
+          a.href = url;
+          a.download = `e-dry-storico-eventi-${stamp}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          toast(`Storico eventi esportato (${rows.length})`);
+        }catch(e){
+          toast("Errore export storico: " + (e.message || e));
+        }
+      }
+
       function openEventLog(){
         if(!eventLogModal) return;
         eventLogModal.classList.remove("eventlog-hidden");
@@ -2723,6 +2755,7 @@
       }
 
       eventLogBtn?.addEventListener("click", openEventLog);
+      btnEventLogExport?.addEventListener("click", exportEventLog);
       btnEventLogClose?.addEventListener("click", closeEventLog);
       eventLogModal?.addEventListener("click", (e)=>{ if(e.target && e.target.id === "eventLogModal") closeEventLog(); });
 
