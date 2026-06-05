@@ -1,3 +1,6 @@
+## 10.3.1
+- Corretto il layout dei badge nelle card zona: ora usano sempre due colonne e non vengono piu tagliati nelle card strette.
+
 ## 10.3.0
 - Ripulite le card zona: preset e durate sono ora badge/metriche compatti invece di testo in linea.
 - Migliorata la leggibilita della parte bassa delle card e il layout responsive su schermi stretti.

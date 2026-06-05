@@ -30,3 +30,4 @@
 ## 2026-06-05
 
 - Bump prototipo add-on a `10.3.0`: ripulite card zona con badge preset e metriche durata compatte.
+- Bump prototipo add-on a `10.3.1`: corretto layout badge zona a due colonne per evitare tagli nelle card strette.
