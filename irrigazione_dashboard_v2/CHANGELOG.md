@@ -1,3 +1,6 @@
+## 10.4.2
+- Aggiunto pulsante `Elimina` sui programmi con conferma prima della cancellazione.
+
 ## 10.4.1
 - Reso piu chiaro il ragionamento SmartCalc per utenti finali.
 - `Score meteo` viene mostrato come `Condizioni per irrigare` con valori Buone/Discrete/Sfavorevoli.

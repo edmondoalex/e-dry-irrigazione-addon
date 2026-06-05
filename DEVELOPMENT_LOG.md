@@ -34,3 +34,4 @@
 - Bump prototipo add-on a `10.3.2`: reso stabile il pulsante Modifica programmi sospendendo il refresh durante l'editing.
 - Bump prototipo add-on a `10.4.0`: aggiunta creazione programmi da dashboard add-on tramite servizio component `e_dry.create_program`.
 - Bump prototipo add-on a `10.4.1`: tradotto Score/ET0 del ragionamento SmartCalc in etichette comprensibili.
+- Bump prototipo add-on a `10.4.2`: aggiunta eliminazione programmi da dashboard con conferma.
