@@ -1,3 +1,7 @@
+## 10.5.2
+- `Irriga ora` ora permette di selezionare una o piu zone tramite checkbox.
+- I pulsanti 5/10/15 minuti impostano solo la durata: l'irrigazione parte soltanto premendo `Irriga ora`.
+
 ## 10.5.1
 - Aggiunto riquadro `Irriga ora` sopra le zone con scelta zona, durata personalizzata e scorciatoie 5/10/15 minuti.
 - Mantenuti invariati i pulsanti `Avvia` e `Stop` dentro ogni card zona.

@@ -310,7 +310,6 @@
       align-items:end;
     }
     .quick-irrigation label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);font-weight:700}
-    .quick-irrigation select,
     .quick-irrigation input[type="number"]{
       width:100%;
       min-height:38px;
@@ -320,10 +319,35 @@
       background:rgba(0,0,0,.20);
       color:var(--txt);
     }
+    .quick-zone-list{
+      margin-top:5px;
+      max-height:118px;
+      overflow:auto;
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:6px;
+      padding:8px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.16);
+    }
+    .quick-zone-list label{
+      display:flex;
+      flex-direction:row;
+      align-items:center;
+      gap:7px;
+      min-width:0;
+      font-size:12px;
+      font-weight:700;
+      color:#dffcff;
+    }
+    .quick-zone-list span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .quick-zone-tools{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+    .quick-zone-tools button{padding:6px 9px;font-size:12px;border-radius:999px}
     .quick-irrigation-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
     .quick-irrigation .quick-title{font-size:15px;font-weight:800;color:#efffff}
     .quick-irrigation .quick-subtitle{font-size:12px;color:#a7ced2;margin-top:2px}
-    @media(max-width:760px){.quick-irrigation{grid-template-columns:1fr}.quick-irrigation-actions{justify-content:flex-start}}
+    @media(max-width:760px){.quick-irrigation{grid-template-columns:1fr}.quick-irrigation-actions{justify-content:flex-start}.quick-zone-list{grid-template-columns:1fr}}
     @media(max-width:640px){.prog-edit{grid-template-columns:1fr}.days-grid,.zones-grid{grid-template-columns:1fr}}
     .small{font-size:12px;color:var(--muted)}
     .toast{
@@ -542,7 +566,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.5.1</span>
+        <span class="pill" id="addonVersion">v10.5.2</span>
       </div>
       <div class="weather-header-brand"><img src="e-konex-label.png" alt="EKONEX"></div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
@@ -661,11 +685,16 @@
         <div class="quick-irrigation" id="quickIrrigationBox">
           <div>
             <div class="quick-title">Irriga ora</div>
-            <div class="quick-subtitle">Avvio manuale rapido. I pulsanti Avvia delle singole zone restano disponibili.</div>
+            <div class="quick-subtitle">Scegli una o piu zone. I pulsanti Avvia delle singole zone restano disponibili.</div>
             <div class="row" style="margin-top:8px;gap:8px">
-              <label style="flex:1 1 180px">Zona
-                <select id="quickZoneSelect"></select>
-              </label>
+              <div style="flex:1 1 220px">
+                <div class="small" style="font-weight:800;margin-bottom:4px">Zone da irrigare</div>
+                <div id="quickZoneList" class="quick-zone-list"></div>
+                <div class="quick-zone-tools">
+                  <button type="button" id="quickAllZones">Tutte</button>
+                  <button type="button" id="quickNoZones">Nessuna</button>
+                </div>
+              </div>
               <label style="width:120px">Minuti
                 <input id="quickDurationInput" type="number" min="1" max="30" step="1" value="10" />
               </label>
@@ -1290,46 +1319,51 @@
 
     function renderQuickIrrigation(zones){
       const box = el('quickIrrigationBox');
-      const select = el('quickZoneSelect');
-      if(!box || !select) return;
+      const listEl = el('quickZoneList');
+      if(!box || !listEl) return;
       const list = Array.isArray(zones) ? zones : [];
       if(!list.length){
         box.style.display = 'none';
         return;
       }
       box.style.display = '';
-      const previous = select.value;
-      select.innerHTML = list.map(z=>{
+      const selected = new Set(Array.from(listEl.querySelectorAll('input:checked')).map(input=>String(input.value)));
+      listEl.innerHTML = list.map(z=>{
         const id = z.id;
         const name = z.name || `Zona ${id}`;
         const switchId = z.switch || z.switch_entity || z.switch_entity_id || '';
-        return `<option value="${id}" data-entity="${switchId}">${name}</option>`;
+        const checked = selected.size ? selected.has(String(id)) : '';
+        return `<label><input type="checkbox" value="${id}" data-entity="${switchId}" ${checked ? 'checked' : ''}/> <span>${name}</span></label>`;
       }).join('');
-      if(previous && Array.from(select.options).some(opt=>opt.value === previous)){
-        select.value = previous;
-      }
     }
 
     async function startQuickIrrigation(minutes){
-      const select = el('quickZoneSelect');
+      const listEl = el('quickZoneList');
       const durationInput = el('quickDurationInput');
       const startBtn = el('quickStartBtn');
-      if(!select || !select.value){
-        toast('Seleziona una zona');
+      const selectedZones = Array.from(listEl?.querySelectorAll('input:checked') || []).map(input=>({
+        zone_id: Number(input.value),
+        entity_id: input.dataset.entity || null
+      })).filter(item=>Number.isFinite(item.zone_id));
+      if(!selectedZones.length){
+        toast('Seleziona almeno una zona');
         return;
       }
       const rawDuration = Number(minutes || durationInput?.value || 10);
       const duration = Number.isFinite(rawDuration) ? Math.max(1, Math.min(30, rawDuration)) : 10;
       if(durationInput) durationInput.value = String(duration);
-      const zone_id = Number(select.value);
-      const entity_id = select.selectedOptions?.[0]?.dataset?.entity || null;
       try{
         if(startBtn) startBtn.disabled = true;
         window.__optimisticZones = window.__optimisticZones || {};
-        window.__optimisticZones[zone_id] = { state: 'on', ts: Date.now() };
+        selectedZones.forEach(item=>{
+          window.__optimisticZones[item.zone_id] = { state: 'on', ts: Date.now() };
+        });
         window.__suppressRefresh = true;
-        await apiPost('/api/irrigazione/zone/start', { zone_id, duration, entity_id });
-        toast(`Irrigo ora: zona ${zone_id} per ${duration} min`);
+        for(const item of selectedZones){
+          await apiPost('/api/irrigazione/zone/start', { zone_id: item.zone_id, duration, entity_id: item.entity_id });
+        }
+        const label = selectedZones.length === 1 ? `zona ${selectedZones[0].zone_id}` : `${selectedZones.length} zone`;
+        toast(`Irrigo ora: ${label} per ${duration} min`);
         setTimeout(()=>{ window.__suppressRefresh = false; refresh(true); }, 900);
       }catch(e){
         window.__suppressRefresh = false;
@@ -2231,8 +2265,14 @@
         const minutes = Number(btn.dataset.min || 10);
         const input = el('quickDurationInput');
         if(input) input.value = String(minutes);
-        startQuickIrrigation(minutes);
+        toast(`Durata impostata: ${minutes} min`);
       });
+    });
+    el('quickAllZones')?.addEventListener('click', ()=>{
+      document.querySelectorAll('#quickZoneList input[type="checkbox"]').forEach(input=>{ input.checked = true; });
+    });
+    el('quickNoZones')?.addEventListener('click', ()=>{
+      document.querySelectorAll('#quickZoneList input[type="checkbox"]').forEach(input=>{ input.checked = false; });
     });
     el('newProgramBtn')?.addEventListener('pointerdown', (event)=>{
       event.preventDefault();

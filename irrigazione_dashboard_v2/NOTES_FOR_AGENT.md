@@ -31,3 +31,4 @@ Ogni volta che fai modifiche a questo addon:
 - 2026-06-05: bump versione prototipo a `10.4.2`; aggiunta eliminazione programmi da dashboard con conferma.
 - 2026-06-05: bump versione prototipo a `10.5.0`; rese piu leggibili le card programma con frasi naturali e badge stato.
 - 2026-06-05: bump versione prototipo a `10.5.1`; aggiunto riquadro `Irriga ora` sopra le zone senza rimuovere i pulsanti `Avvia` nelle card.
+- 2026-06-05: bump versione prototipo a `10.5.2`; `Irriga ora` supporta selezione multipla zone e i pulsanti durata non avviano piu automaticamente.
