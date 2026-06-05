@@ -42,3 +42,4 @@ Ogni volta che fai modifiche a questo addon:
 - 2026-06-05: bump versione prototipo a `10.5.10`; rinominato manuale in `Guida utente e-Dry`.
 - 2026-06-05: bump versione prototipo a `10.5.11`; aggiunto export storico eventi CSV dal popup Eventi.
 - 2026-06-05: bump versione prototipo a `10.5.12`; ridotto polling dashboard e throttling log stato per abbassare uso CPU.
+- 2026-06-05: bump versione prototipo a `10.5.13`; migliorato layout `Irriga ora`, scrollbar/slider coerenti e rimosso carattere `?` iniziale.

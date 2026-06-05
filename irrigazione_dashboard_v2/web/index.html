@@ -1,4 +1,4 @@
-﻿?<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
@@ -234,7 +234,13 @@
     .zone-badge b,.zone-metric b{margin-top:3px;font-size:12px;color:#efffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     @media(max-width:760px){.zone-meta .toggle.ignore{grid-column:1/-1}}
     .zone .ctrl{position:relative;z-index:3;display:flex;align-items:center;gap:8px;margin-top:10px}
-    .zone .zone-dur-range{flex:1}
+    .zone .zone-dur-range{flex:1;min-width:0}
+    input[type=range].zone-dur-range{-webkit-appearance:none;appearance:none;height:30px;background:transparent;cursor:pointer}
+    input[type=range].zone-dur-range:focus{outline:none}
+    input[type=range].zone-dur-range::-webkit-slider-runnable-track{height:8px;border-radius:999px;background:linear-gradient(90deg,rgba(53,214,189,.88),rgba(105,212,228,.60));border:1px solid rgba(255,255,255,.12)}
+    input[type=range].zone-dur-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;margin-top:-7px;border-radius:50%;background:#54dfcb;border:2px solid rgba(255,255,255,.95);box-shadow:0 4px 12px rgba(0,0,0,.35)}
+    input[type=range].zone-dur-range::-moz-range-track{height:8px;border-radius:999px;background:linear-gradient(90deg,rgba(53,214,189,.88),rgba(105,212,228,.60));border:1px solid rgba(255,255,255,.12)}
+    input[type=range].zone-dur-range::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#54dfcb;border:2px solid rgba(255,255,255,.95);box-shadow:0 4px 12px rgba(0,0,0,.35)}
     .zone .zone-dur-num{width:64px;padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);text-align:center}
     .bar{position:relative}
     /* overlay slider centered vertically over the progress bar */
@@ -322,26 +328,39 @@
     }
     .quick-zone-list{
       margin-top:5px;
-      max-height:118px;
+      min-height:150px;
+      max-height:240px;
       overflow:auto;
       display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:6px;
-      padding:8px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(0,0,0,.16);
+      grid-template-columns:repeat(auto-fit,minmax(118px,1fr));
+      align-content:start;
+      gap:8px;
+      padding:10px;
+      border-radius:16px;
+      border:1px solid rgba(112,237,207,.22);
+      background:rgba(0,20,28,.36);
+      scrollbar-color:rgba(112,237,207,.70) rgba(0,0,0,.24);
+      scrollbar-width:thin;
     }
+    .quick-zone-list::-webkit-scrollbar{width:10px}
+    .quick-zone-list::-webkit-scrollbar-track{background:rgba(0,0,0,.24);border-radius:999px}
+    .quick-zone-list::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#64e4cf,#1f9b93);border-radius:999px;border:2px solid rgba(0,20,28,.85)}
     .quick-zone-list label{
       display:flex;
       flex-direction:row;
       align-items:center;
       gap:7px;
       min-width:0;
+      min-height:34px;
+      padding:7px 8px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.09);
+      background:rgba(255,255,255,.035);
       font-size:12px;
       font-weight:700;
       color:#dffcff;
     }
+    .quick-zone-list input[type="checkbox"]{accent-color:#64e4cf;transform:scale(1.08)}
     .quick-zone-list span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .quick-zone-tools{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
     .quick-zone-tools button{padding:6px 9px;font-size:12px;border-radius:999px}
@@ -366,7 +385,8 @@
     .quick-sequence-bar{grid-column:1/-1;height:8px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
     .quick-sequence-bar div{height:100%;width:0;background:linear-gradient(90deg,#ffd27c,#64e4cf)}
     .program-run-panel{margin-top:10px}
-    @media(max-width:760px){.quick-irrigation{grid-template-columns:1fr}.quick-irrigation-actions{justify-content:flex-start}.quick-zone-list{grid-template-columns:1fr}}
+    @media(max-width:760px){.quick-irrigation{grid-template-columns:1fr}.quick-irrigation-actions{justify-content:flex-start}.quick-zone-list{grid-template-columns:repeat(2,minmax(0,1fr));max-height:300px}}
+    @media(max-width:420px){.quick-zone-list{grid-template-columns:1fr;max-height:340px}}
     @media(max-width:760px){.quick-sequence{grid-template-columns:1fr}.quick-sequence-bar{grid-column:1}}
     @media(max-width:640px){.prog-edit{grid-template-columns:1fr}.days-grid,.zones-grid{grid-template-columns:1fr}}
     .small{font-size:12px;color:var(--muted)}
@@ -496,6 +516,8 @@
       .zones-panel,.programs{width:100%;min-width:0}
       .quick-irrigation{grid-template-columns:1fr;align-items:stretch}
       .quick-irrigation-actions{justify-content:flex-start}
+      .quick-irrigation .row{align-items:stretch}
+      .quick-irrigation .row > div:first-child{flex-basis:100%!important}
     }
     @media(max-width:640px){
       .controller-overview{padding:10px;gap:10px}
@@ -590,7 +612,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.5.12</span>
+        <span class="pill" id="addonVersion">v10.5.13</span>
       </div>
       <div class="weather-header-brand"><img src="e-konex-label.png" alt="EKONEX"></div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">

@@ -1,3 +1,8 @@
+## 10.5.13
+- Migliorato il riquadro `Irriga ora`: lista zone piu grande, responsive e con scrollbar in stile dashboard.
+- Stilizzati gli slider durata zona per evitare controlli browser grezzi.
+- Rimosso il carattere `?` visibile in alto a sinistra prima del caricamento pagina.
+
 ## 10.5.12
 - Ridotto il carico CPU del dashboard con refresh adattivo: 5 secondi a riposo, 1,5 secondi solo con irrigazione attiva e 15 secondi quando la pagina non e visibile.
 - Ridotta la frequenza dei log backend `/api/irrigazione/state`.
