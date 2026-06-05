@@ -1,3 +1,6 @@
+## 10.5.15
+- Spostato il campo `Minuti` accanto ai pulsanti `Tutte` e `Nessuna` nel riquadro `Irriga ora`.
+
 ## 10.5.14
 - Riorganizzato `Irriga ora` per allargare la lista zone invece di allungarla verticalmente.
 - Ridotto lo spazio vuoto nel pannello manuale e resa la disposizione piu bilanciata su desktop e mobile.

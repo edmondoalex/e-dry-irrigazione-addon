@@ -317,7 +317,7 @@
       align-items:stretch;
     }
     .quick-irrigation-main{min-width:0}
-    .quick-irrigation-grid{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:10px;align-items:end;margin-top:8px}
+    .quick-irrigation-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;align-items:end;margin-top:8px}
     .quick-irrigation label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);font-weight:700}
     .quick-irrigation input[type="number"]{
       width:100%;
@@ -364,8 +364,10 @@
     }
     .quick-zone-list input[type="checkbox"]{accent-color:#64e4cf;transform:scale(1.08)}
     .quick-zone-list span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .quick-zone-tools{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+    .quick-zone-tools{display:flex;gap:6px;flex-wrap:wrap;align-items:end;margin-top:6px}
     .quick-zone-tools button{padding:6px 9px;font-size:12px;border-radius:999px}
+    .quick-zone-tools .quick-minutes{width:108px;margin-left:auto}
+    .quick-zone-tools .quick-minutes input{min-height:34px;padding:6px 10px}
     .quick-irrigation-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
     .quick-irrigation .quick-title{font-size:15px;font-weight:800;color:#efffff}
     .quick-irrigation .quick-subtitle{font-size:12px;color:#a7ced2;margin-top:2px}
@@ -387,7 +389,7 @@
     .quick-sequence-bar{grid-column:1/-1;height:8px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
     .quick-sequence-bar div{height:100%;width:0;background:linear-gradient(90deg,#ffd27c,#64e4cf)}
     .program-run-panel{margin-top:10px}
-    @media(max-width:760px){.quick-irrigation{grid-template-columns:1fr}.quick-irrigation-actions{justify-content:flex-start}.quick-irrigation-grid{grid-template-columns:1fr}.quick-zone-list{grid-template-columns:repeat(2,minmax(0,1fr));max-height:190px}}
+    @media(max-width:760px){.quick-irrigation{grid-template-columns:1fr}.quick-irrigation-actions{justify-content:flex-start}.quick-irrigation-grid{grid-template-columns:1fr}.quick-zone-list{grid-template-columns:repeat(2,minmax(0,1fr));max-height:190px}.quick-zone-tools .quick-minutes{margin-left:0}}
     @media(max-width:420px){.quick-zone-list{grid-template-columns:1fr;max-height:340px}}
     @media(max-width:760px){.quick-sequence{grid-template-columns:1fr}.quick-sequence-bar{grid-column:1}}
     @media(max-width:640px){.prog-edit{grid-template-columns:1fr}.days-grid,.zones-grid{grid-template-columns:1fr}}
@@ -613,7 +615,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.5.14</span>
+        <span class="pill" id="addonVersion">v10.5.15</span>
       </div>
       <div class="weather-header-brand"><img src="e-konex-label.png" alt="EKONEX"></div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
@@ -741,11 +743,11 @@
                 <div class="quick-zone-tools">
                   <button type="button" id="quickAllZones">Tutte</button>
                   <button type="button" id="quickNoZones">Nessuna</button>
+                  <label class="quick-minutes">Minuti
+                    <input id="quickDurationInput" type="number" min="1" max="30" step="1" value="10" />
+                  </label>
                 </div>
               </div>
-              <label>Minuti
-                <input id="quickDurationInput" type="number" min="1" max="30" step="1" value="10" />
-              </label>
             </div>
           </div>
           <div class="quick-irrigation-actions">

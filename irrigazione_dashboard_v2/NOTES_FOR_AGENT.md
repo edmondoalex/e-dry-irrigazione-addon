@@ -44,3 +44,4 @@ Ogni volta che fai modifiche a questo addon:
 - 2026-06-05: bump versione prototipo a `10.5.12`; ridotto polling dashboard e throttling log stato per abbassare uso CPU.
 - 2026-06-05: bump versione prototipo a `10.5.13`; migliorato layout `Irriga ora`, scrollbar/slider coerenti e rimosso carattere `?` iniziale.
 - 2026-06-05: bump versione prototipo a `10.5.14`; lista zone `Irriga ora` allargata su griglia full width e altezza ridotta.
+- 2026-06-05: bump versione prototipo a `10.5.15`; campo `Minuti` spostato nella riga strumenti accanto a `Tutte`/`Nessuna`.

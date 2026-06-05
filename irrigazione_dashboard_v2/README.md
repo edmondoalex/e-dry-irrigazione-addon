@@ -23,7 +23,7 @@ Debug e log
 - L'integrazione `e-dry` scrive inoltre i suoi debug in `config/custom_components/e-dry_irrigation/e_dry_debug.log`.
 
 Note
-- Versione corrente prototipo: `10.5.14`.
+- Versione corrente prototipo: `10.5.15`.
 
 Meteo
 - La dashboard legge i dati da e-SunMind tramite `e_sunmind_api_url`.
