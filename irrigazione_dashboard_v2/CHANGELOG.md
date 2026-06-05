@@ -1,3 +1,8 @@
+## 10.4.1
+- Reso piu chiaro il ragionamento SmartCalc per utenti finali.
+- `Score meteo` viene mostrato come `Condizioni per irrigare` con valori Buone/Discrete/Sfavorevoli.
+- `ET0` viene mostrato come `Quanto asciuga il terreno` con valori Basso/Medio/Alto.
+
 ## 10.4.0
 - Aggiunta creazione programmi dalla dashboard add-on tramite pulsante `Nuovo programma`.
 - Aggiunto endpoint `POST /api/programs/create` collegato al servizio component `e_dry.create_program`.

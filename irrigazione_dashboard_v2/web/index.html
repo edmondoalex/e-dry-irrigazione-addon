@@ -510,7 +510,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.4.0</span>
+        <span class="pill" id="addonVersion">v10.4.1</span>
       </div>
       <div class="weather-header-brand"><img src="e-konex-label.png" alt="EKONEX"></div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
@@ -611,7 +611,7 @@
 
           <div style="margin-top:8px">
             <div class="stat"><b>Fattore Smart Calc</b><div class="v" id="w1"></div></div>
-            <div class="stat" style="margin-top:6px"><b>Ragionamento Smart Calc</b><div class="v" id="w2"></div></div>
+            <div class="stat" style="margin-top:6px"><b>Perche cambia la durata</b><div class="v" id="w2"></div></div>
             <div class="stat" style="margin-top:6px"><b>Stato Meteo Irrigazione</b><div class="v" id="w3"></div></div>
           </div>
         </div>
@@ -1678,17 +1678,52 @@
     function renderWeather(weather){
       // ordine come server: fattore, ragionamento, stato
       const w = weather || [];
+      const humanReason = humanizeSmartReason(w[1]?.missing ? "" : (w[1]?.state ?? ""));
       el("w1").textContent = w[0]?.missing ? "missing" : (w[0]?.state ?? "-");
-      el("w2").textContent = w[1]?.missing ? "missing" : (w[1]?.state ?? "-");
+      el("w2").textContent = w[1]?.missing ? "missing" : (humanReason || "-");
       el("w3").textContent = w[2]?.missing ? "missing" : (w[2]?.state ?? "-");
       const smartFactor = el('controllerSmartFactor');
       if(smartFactor) smartFactor.textContent = w[0]?.missing ? '-' : (w[0]?.state ?? '-');
       const smartStatus = el('smartDecisionStatus');
       const smartReason = el('smartDecisionReason');
       const statusRaw = w[2]?.missing ? '' : String(w[2]?.state ?? '').trim();
-      const reasonRaw = w[1]?.missing ? '' : String(w[1]?.state ?? '').trim();
+      const reasonRaw = humanReason;
       if(smartStatus) smartStatus.textContent = statusRaw || 'Stato non disponibile';
       if(smartReason) smartReason.textContent = reasonRaw || 'Nessuna motivazione SmartCalc disponibile';
+    }
+
+    function humanizeSmartReason(value){
+      const raw = String(value || '').trim();
+      if(!raw) return '';
+      const scoreMatch = raw.match(/score\s*([0-9]+(?:[\.,][0-9]+)?)/i);
+      const et0Match = raw.match(/et0\s*([0-9]+(?:[\.,][0-9]+)?)/i);
+      const rainMatch = raw.match(/pioggia\s+prevista\s+([0-9]+(?:[\.,][0-9]+)?)/i);
+      const tempMatch = raw.match(/temp\s+(-?[0-9]+(?:[\.,][0-9]+)?)/i);
+      const humMatch = raw.match(/hum\s+([0-9]+(?:[\.,][0-9]+)?)/i);
+
+      const num = (match) => match ? Number(String(match[1]).replace(',', '.')) : null;
+      const score = num(scoreMatch);
+      const et0 = num(et0Match);
+      const rain = num(rainMatch);
+      const temp = num(tempMatch);
+      const hum = num(humMatch);
+
+      const scoreLabel = score == null ? 'Non disponibili'
+        : score >= 75 ? 'Buone'
+        : score >= 45 ? 'Discrete'
+        : 'Sfavorevoli';
+      const et0Label = et0 == null ? 'Non disponibile'
+        : et0 < 2 ? 'Basso'
+        : et0 < 5 ? 'Medio'
+        : 'Alto';
+
+      const details = [];
+      details.push(`Condizioni per irrigare: ${scoreLabel}`);
+      details.push(`Quanto asciuga il terreno: ${et0Label}`);
+      if(rain != null) details.push(`Pioggia prevista: ${rain.toFixed(1)} mm`);
+      if(temp != null) details.push(`Temperatura: ${temp.toFixed(1)} °C`);
+      if(hum != null) details.push(`Umidita: ${hum.toFixed(0)}%`);
+      return details.join(' | ');
     }
 
     function renderNextIrrigation(enabled, programs, zoneMap){
