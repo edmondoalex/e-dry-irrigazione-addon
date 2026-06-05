@@ -1,3 +1,7 @@
+## 10.5.12
+- Ridotto il carico CPU del dashboard con refresh adattivo: 5 secondi a riposo, 1,5 secondi solo con irrigazione attiva e 15 secondi quando la pagina non e visibile.
+- Ridotta la frequenza dei log backend `/api/irrigazione/state`.
+
 ## 10.5.11
 - Aggiunto pulsante `Esporta storico` nel popup Eventi per scaricare il registro eventi in CSV.
 

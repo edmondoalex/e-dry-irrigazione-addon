@@ -590,7 +590,7 @@
     <div class="hd" style="gap:10px;flex-wrap:wrap;align-items:center">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <h2 style="margin:0"><img src="e-dry2.png" alt="e-dry" style="height:128px;display:block"></h2>
-        <span class="pill" id="addonVersion">v10.5.11</span>
+        <span class="pill" id="addonVersion">v10.5.12</span>
       </div>
       <div class="weather-header-brand"><img src="e-konex-label.png" alt="EKONEX"></div>
       <div class="actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
@@ -2384,8 +2384,48 @@
       });
     }
 
+    let refreshTimer = null;
+    let refreshInFlight = false;
+    let refreshQueued = false;
+
+    function hasActiveIrrigation(state){
+      const zonesActive = (state?.zones || []).some(z => {
+        if(z?.is_on) return true;
+        const rem = String(z?.remaining_raw || z?.remaining || "").trim();
+        if(rem && !["0", "0:00", "00:00", "0:00:00", "00:00:00", "unknown", "unavailable"].includes(rem.toLowerCase())) return true;
+        const pct = Number(z?.percent);
+        return !Number.isNaN(pct) && pct > 0;
+      });
+      const quickActive = Boolean(state?.quick_sequence?.active);
+      const programActive = (state?.programs || []).some(p => p?.running || Number(p?.progress || 0) > 0);
+      return zonesActive || quickActive || programActive;
+    }
+
+    function scheduleRefresh(delayMs){
+      if(refreshTimer) clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(()=>refresh(false), delayMs);
+    }
+
+    function refreshDelayFor(state){
+      if(document.hidden) return 15000;
+      return hasActiveIrrigation(state) ? 1500 : 5000;
+    }
+
     async function refresh(force=false){
-      if(window.__suppressRefresh && !force) return;
+      if(window.__suppressRefresh && !force){
+        scheduleRefresh(1000);
+        return;
+      }
+      if(document.hidden && !force){
+        scheduleRefresh(15000);
+        return;
+      }
+      if(refreshInFlight){
+        if(force) refreshQueued = true;
+        return;
+      }
+      refreshInFlight = true;
+      let nextDelay = document.hidden ? 15000 : 5000;
       try{
         const legacy = await apiGet("/api/irrigazione/state");
         setOnline(true);
@@ -2396,9 +2436,19 @@
         renderQuickSequence(legacy.quick_sequence);
         renderPrograms(legacy.programs_enabled, legacy.programs_enabled_entity, legacy.programs, legacy.zones);
         el("rawHint").textContent = "";
+        nextDelay = refreshDelayFor(legacy);
       } catch(e){
         setOnline(false);
         el("rawHint").textContent = "Dettaglio: " + e.message;
+        nextDelay = document.hidden ? 15000 : 10000;
+      } finally {
+        refreshInFlight = false;
+        if(refreshQueued){
+          refreshQueued = false;
+          scheduleRefresh(300);
+        }else{
+          scheduleRefresh(nextDelay);
+        }
       }
     }
 
@@ -2508,8 +2558,11 @@
       stopAllBtnEl.addEventListener("click", (event)=>stopAllIrrigation(event.currentTarget));
     }
 
+    document.addEventListener("visibilitychange", ()=>{
+      if(document.hidden) scheduleRefresh(15000);
+      else refresh(true);
+    });
     refresh();
-    setInterval(refresh, 1200);
     // NOTE: il gestore delegato ??????ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨ stato rimosso in favore di listener per-bottone
 
     // --- UI enhancements: search, compact, collapse, export (persisted) ---

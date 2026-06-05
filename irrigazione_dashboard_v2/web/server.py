@@ -19,7 +19,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.5.11"
+VERSION = "10.5.12"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -32,6 +32,7 @@ MANUAL_HTML = HERE / "manuale.html"
 LAST_STATE = {"zones": None, "active_zone": None}
 LAST_STATE_TS = 0
 LAST_STATE_DIRTY = False
+LAST_STATE_LOG_TS = 0
 WS_THREAD_STARTED = False
 QUICK_SEQUENCE_LOCK = threading.Lock()
 QUICK_SEQUENCE_CANCEL = threading.Event()
@@ -1577,7 +1578,11 @@ def api_irrigazione_state():
         active_zone = cache_active
 
     try:
-        print(f"[state] zones={len(zones) if zones else 0} cache={len(cache_zones) if cache_zones else 0} use_cache={use_cache}", flush=True)
+        global LAST_STATE_LOG_TS
+        now_log = time.time()
+        if now_log - LAST_STATE_LOG_TS >= 30:
+            LAST_STATE_LOG_TS = now_log
+            print(f"[state] zones={len(zones) if zones else 0} cache={len(cache_zones) if cache_zones else 0} use_cache={use_cache}", flush=True)
     except Exception:
         pass
 
