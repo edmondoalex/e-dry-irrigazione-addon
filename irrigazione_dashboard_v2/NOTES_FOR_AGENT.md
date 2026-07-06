@@ -49,3 +49,4 @@ Ogni volta che fai modifiche a questo addon:
 - 2026-07-06: bump versione a `10.5.17`; `web/server.py` e `web/entities_server.py` risolvono gli aggregati e-Dry tramite `bind_config_entry_id`/registry prima dei nomi fissi, con diagnostica sorgente nel log e JSON.
 - 2026-07-06: bump versione a `10.5.18`; aggiunta risoluzione device registry per bind copiati dalla pagina dispositivo HA e log del bind effettivo in `/api/irrigazione/state`.
 - 2026-07-06: bump versione a `10.5.19`; aggiunto fallback su `/api/states` per trovare gli aggregati e-Dry da nome/attributi quando registry e bind non bastano.
+- 2026-07-06: bump versione a `10.5.20`; default backend e pagina entita allineati agli entity_id automatici `sensor.centralina_irrigazione_e_dry_*_info`.

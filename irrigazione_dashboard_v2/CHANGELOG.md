@@ -1,3 +1,7 @@
+## 10.5.20
+- Allineati i default degli entity_id agli ID generati automaticamente da Home Assistant per il dispositivo `Centralina Irrigazione`.
+- I sensori aggregati predefiniti ora usano `sensor.centralina_irrigazione_e_dry_*_info` e lo switch programmi usa il prefisso `centralina_irrigazione`.
+
 ## 10.5.19
 - Aggiunto fallback sugli stati Home Assistant per risolvere i sensori aggregati e-Dry quando registry/bind non espongono `unique_id` o `config_entry_id` nel formato atteso.
 - La sorgente diagnostica puo ora indicare `states` oltre a `bind`, `configured` e `missing`.

@@ -510,9 +510,9 @@
       });
     }
 
-    const zonesInfoEntity = meta.zones_info_entity || 'sensor.e_dry_zones_info';
-    const programsInfoEntity = meta.programs_info_entity || 'sensor.e_dry_programs_info';
-    const meteoInfoEntity = meta.meteo_info_entity || 'sensor.e_dry_meteo_info';
+    const zonesInfoEntity = meta.zones_info_entity || 'sensor.centralina_irrigazione_e_dry_zones_info';
+    const programsInfoEntity = meta.programs_info_entity || 'sensor.centralina_irrigazione_e_dry_programs_info';
+    const meteoInfoEntity = meta.meteo_info_entity || 'sensor.centralina_irrigazione_e_dry_meteo_info';
 
     const aggById = (eid) => (aggregates || []).find(a => a?.entity_id === eid) || null;
     const zonesAgg = aggById(zonesInfoEntity);

@@ -19,7 +19,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.5.19"
+VERSION = "10.5.20"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -59,6 +59,11 @@ HEADERS = {"Authorization": f"Bearer {SUPERVISOR_TOKEN}", "Content-Type": "appli
 
 EVENT_LOG_ENTITY = os.environ.get("EVENT_LOG_ENTITY", "sensor.e_dry_event_log")
 DEFAULT_ESUNMIND_API_URL = os.environ.get("E_SUNMIND_API_URL", "http://192.168.3.24:1980/api/weather/irrigation")
+DEFAULT_ZONES_INFO_ENTITY = "sensor.centralina_irrigazione_e_dry_zones_info"
+DEFAULT_PROGRAMS_INFO_ENTITY = "sensor.centralina_irrigazione_e_dry_programs_info"
+DEFAULT_METEO_INFO_ENTITY = "sensor.centralina_irrigazione_e_dry_meteo_info"
+DEFAULT_PROGRAMS_ENABLED_ENTITY = "switch.centralina_irrigazione_programmi_abilitati"
+DEFAULT_MANUAL_ADJUSTMENT_ENTITY = "number.centralina_irrigazione_regolazione_stagionale"
 
 
 def read_options():
@@ -1291,10 +1296,10 @@ def api_irrigazione_state():
     bind = opts.get('bind_config_entry_id') or request.args.get('config_entry')
 
     # Aggregated sensors (created by the integration)
-    zones_info_entity = opts.get('zones_info_entity') or 'sensor.e_dry_zones_info'
-    programs_info_entity = opts.get('programs_info_entity') or 'sensor.e_dry_programs_info'
-    meteo_info_entity = opts.get('meteo_info_entity') or 'sensor.e_dry_meteo_info'
-    programs_enabled_entity = opts.get('programs_enabled_entity') or 'switch.programmi_abilitati'
+    zones_info_entity = opts.get('zones_info_entity') or DEFAULT_ZONES_INFO_ENTITY
+    programs_info_entity = opts.get('programs_info_entity') or DEFAULT_PROGRAMS_INFO_ENTITY
+    meteo_info_entity = opts.get('meteo_info_entity') or DEFAULT_METEO_INFO_ENTITY
+    programs_enabled_entity = opts.get('programs_enabled_entity') or DEFAULT_PROGRAMS_ENABLED_ENTITY
     z_info, zones_info_entity, zones_info_source = resolve_bound_entity_state(
         zones_info_entity, bind, '_zones_info', 'sensor'
     )
@@ -1768,7 +1773,7 @@ def api_irrigazione_state():
             pass
 
     # Manual adjustment percent (Regolazione Stagionale) - bidirectional via HA number entity
-    manual_adjustment_entity = opts.get('manual_adjustment_entity') or 'number.regolazione_stagionale'
+    manual_adjustment_entity = opts.get('manual_adjustment_entity') or DEFAULT_MANUAL_ADJUSTMENT_ENTITY
     manual_adjustment = None
     manual_adjustment_attrs = {}
     try:
@@ -1810,7 +1815,7 @@ def api_irrigazione_state():
 def meteo_manual_adjustment_set():
     """Set seasonal/manual adjustment percent (number.regolazione_stagionale)."""
     data = request.get_json(silent=True) or {}
-    entity_id = data.get('entity_id') or (read_options().get('manual_adjustment_entity') or 'number.regolazione_stagionale')
+    entity_id = data.get('entity_id') or (read_options().get('manual_adjustment_entity') or DEFAULT_MANUAL_ADJUSTMENT_ENTITY)
     value = data.get('value')
     if value is None:
         return jsonify({"version": VERSION, 'error': 'value richiesto'}), 400
@@ -1828,7 +1833,7 @@ def meteo_manual_adjustment_set():
 def _weather_settings_from_meteo_sensor():
     opts = read_options()
     bind = opts.get('bind_config_entry_id')
-    entity_id = opts.get('meteo_info_entity') or 'sensor.e_dry_meteo_info'
+    entity_id = opts.get('meteo_info_entity') or DEFAULT_METEO_INFO_ENTITY
     st, entity_id, _source = resolve_bound_entity_state(entity_id, bind, '_weather_info', 'sensor')
     attrs = (st or {}).get('attributes') or {}
     def val(key, default=None):
@@ -1859,7 +1864,7 @@ def _weather_settings_from_meteo_sensor():
 def _zone_profiles_from_zones_sensor():
     opts = read_options()
     bind = opts.get('bind_config_entry_id')
-    entity_id = opts.get('zones_info_entity') or 'sensor.e_dry_zones_info'
+    entity_id = opts.get('zones_info_entity') or DEFAULT_ZONES_INFO_ENTITY
     st, entity_id, _source = resolve_bound_entity_state(entity_id, bind, '_zones_info', 'sensor')
     attrs = (st or {}).get('attributes') or {}
     profiles = attrs.get('zone_profiles') or []
@@ -2104,7 +2109,7 @@ def stop_all():
     QUICK_SEQUENCE_SKIP.set()
     opts = read_options()
     bind = opts.get('bind_config_entry_id')
-    zones_info_entity = opts.get('zones_info_entity') or 'sensor.e_dry_zones_info'
+    zones_info_entity = opts.get('zones_info_entity') or DEFAULT_ZONES_INFO_ENTITY
     errors = []
 
     # Prefer stopping via integration services using the aggregated zones info
@@ -2156,7 +2161,7 @@ def _get_entities_for_bind():
 def programs_enabled_set():
     data = request.get_json(silent=True) or {}
     enabled = bool(data.get('enabled'))
-    enabled_entity = read_options().get('programs_enabled_entity') or 'switch.programmi_abilitati'
+    enabled_entity = read_options().get('programs_enabled_entity') or DEFAULT_PROGRAMS_ENABLED_ENTITY
     try:
         domain = enabled_entity.split('.', 1)[0]
         svc = 'turn_on' if enabled else 'turn_off'

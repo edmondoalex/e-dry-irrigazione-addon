@@ -16,13 +16,17 @@ from flask import Flask, request, jsonify, send_file
 import requests
 
 app = Flask(__name__)
-VERSION = "10.5.19"
+VERSION = "10.5.20"
 HERE = Path(__file__).resolve().parent
 INDEX_HTML = HERE / "entities_index.html"
 
 HA_BASE = os.environ.get("HA_BASE", "http://supervisor/core")
 SUPERVISOR_TOKEN = os.environ.get("SUPERVISOR_TOKEN", "")
 HEADERS = {"Authorization": f"Bearer {SUPERVISOR_TOKEN}", "Content-Type": "application/json"}
+DEFAULT_ZONES_INFO_ENTITY = "sensor.centralina_irrigazione_e_dry_zones_info"
+DEFAULT_PROGRAMS_INFO_ENTITY = "sensor.centralina_irrigazione_e_dry_programs_info"
+DEFAULT_METEO_INFO_ENTITY = "sensor.centralina_irrigazione_e_dry_meteo_info"
+DEFAULT_PROGRAMS_ENABLED_ENTITY = "switch.centralina_irrigazione_programmi_abilitati"
 
 def _extract_zone_id(attrs):
     """Best-effort zone id from attributes."""
@@ -375,10 +379,10 @@ def api_entities_grouped():
     entry_id = request.args.get('entry_id')
     debug = request.args.get('debug') in ('1','true','True')
 
-    zones_info_entity = opts.get('zones_info_entity') or 'sensor.e_dry_zones_info'
-    programs_info_entity = opts.get('programs_info_entity') or 'sensor.e_dry_programs_info'
-    meteo_info_entity = opts.get('meteo_info_entity') or 'sensor.e_dry_meteo_info'
-    programs_enabled_entity = opts.get('programs_enabled_entity') or 'switch.programmi_abilitati'
+    zones_info_entity = opts.get('zones_info_entity') or DEFAULT_ZONES_INFO_ENTITY
+    programs_info_entity = opts.get('programs_info_entity') or DEFAULT_PROGRAMS_INFO_ENTITY
+    meteo_info_entity = opts.get('meteo_info_entity') or DEFAULT_METEO_INFO_ENTITY
+    programs_enabled_entity = opts.get('programs_enabled_entity') or DEFAULT_PROGRAMS_ENABLED_ENTITY
 
     entities = []
     if config_entry:
