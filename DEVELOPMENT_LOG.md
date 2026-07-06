@@ -36,3 +36,7 @@
 - Bump prototipo add-on a `10.4.1`: tradotto Score/ET0 del ragionamento SmartCalc in etichette comprensibili.
 - Bump prototipo add-on a `10.4.2`: aggiunta eliminazione programmi da dashboard con conferma.
 - Bump prototipo add-on a `10.5.0`: rese piu leggibili le card programma con frasi naturali e badge stato.
+
+## 2026-07-06
+
+- Bump add-on a `10.5.21`: aggiunta didascalia chiara sopra lo slider durata nelle card zona e aggiornati README/changelog/runtime version.

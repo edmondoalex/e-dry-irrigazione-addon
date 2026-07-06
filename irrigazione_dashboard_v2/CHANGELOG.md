@@ -1,3 +1,7 @@
+## 10.5.21
+- Aggiunta una didascalia esplicita `Durata: sposta lo slider` sopra la barra delle card zona per rendere chiaro dove modificare i minuti.
+- Aggiornato il tooltip della barra durata nelle card zona.
+
 ## 10.5.20
 - Allineati i default degli entity_id agli ID generati automaticamente da Home Assistant per il dispositivo `Centralina Irrigazione`.
 - I sensori aggregati predefiniti ora usano `sensor.centralina_irrigazione_e_dry_*_info` e lo switch programmi usa il prefisso `centralina_irrigazione`.
