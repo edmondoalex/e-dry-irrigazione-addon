@@ -19,7 +19,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.5.17"
+VERSION = "10.5.18"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -235,6 +235,16 @@ def ha_get_entity_registry_list():
     return r.json()
 
 
+def ha_get_device_registry_list():
+    ok, _ = _require_token()
+    if not ok:
+        raise RuntimeError("missing token")
+    r = requests.get(f"{HA_BASE}/api/config/device_registry/list", headers=HEADERS, timeout=30)
+    if r.status_code >= 400:
+        raise RuntimeError(f"device_registry_list failed: {r.status_code} {r.text[:400]}")
+    return r.json()
+
+
 def resolve_entities_by_config_entry_registry(config_entry):
     """Resolve entities bound to a config_entry via entity registry (more robust than template)."""
     if not config_entry:
@@ -275,19 +285,37 @@ def resolve_entities_by_config_entry_registry(config_entry):
     return out
 
 
-def _registry_entry_matches_bind(entry, bind):
+def _bind_candidate_ids(bind):
     if not bind:
-        return False
+        return set()
     bind_s = str(bind)
+    ids = {bind_s}
+    try:
+        devices = ha_get_device_registry_list() or []
+        for dev in devices:
+            if str(dev.get('id') or '') != bind_s:
+                continue
+            for ce in dev.get('config_entries') or []:
+                if ce is not None:
+                    ids.add(str(ce))
+            break
+    except Exception:
+        pass
+    return ids
+
+
+def _registry_entry_matches_bind(entry, bind_ids):
+    if not bind_ids:
+        return False
     try:
         ce = entry.get('config_entry_id')
         if isinstance(ce, (list, tuple)):
-            if bind_s in [str(x) for x in ce]:
+            if any(str(x) in bind_ids for x in ce):
                 return True
-        elif ce is not None and str(ce) == bind_s:
+        elif ce is not None and str(ce) in bind_ids:
             return True
         device_id = entry.get('device_id')
-        if device_id is not None and str(device_id) == bind_s:
+        if device_id is not None and str(device_id) in bind_ids:
             return True
     except Exception:
         return False
@@ -303,7 +331,9 @@ def _find_bound_entity_id(bind, unique_suffix, domain=None):
     except Exception:
         return None
 
+    bind_ids = _bind_candidate_ids(bind)
     matches = []
+    suffix_matches = []
     for item in reg:
         try:
             eid = item.get('entity_id') or ''
@@ -312,17 +342,25 @@ def _find_bound_entity_id(bind, unique_suffix, domain=None):
                 continue
             if domain and not eid.startswith(f"{domain}."):
                 continue
-            if not _registry_entry_matches_bind(item, bind):
-                continue
             disabled = item.get('disabled_by') is not None
-            matches.append((disabled, eid))
+            if _registry_entry_matches_bind(item, bind_ids):
+                matches.append((disabled, eid))
+            else:
+                suffix_matches.append((disabled, eid))
         except Exception:
             continue
 
     for _disabled, eid in sorted(matches, key=lambda x: x[0]):
         if ha_try_get_state(eid):
             return eid
-    return matches[0][1] if matches else None
+    if matches:
+        return matches[0][1]
+
+    if len(suffix_matches) == 1:
+        eid = suffix_matches[0][1]
+        if ha_try_get_state(eid):
+            return eid
+    return None
 
 
 def resolve_bound_entity_state(configured_entity, bind, unique_suffix, domain='sensor'):
@@ -1656,6 +1694,7 @@ def api_irrigazione_state():
             LAST_STATE_LOG_TS = now_log
             print(
                 f"[state] zones={len(zones) if zones else 0} "
+                f"bind={str(bind or '-')[:12]} "
                 f"z_info={zones_info_entity}:{zones_info_source} "
                 f"z_list={len(z_list) if z_list else 0} "
                 f"cache={len(cache_zones) if cache_zones else 0} use_cache={use_cache}",

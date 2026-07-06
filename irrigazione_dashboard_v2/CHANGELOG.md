@@ -1,3 +1,7 @@
+## 10.5.18
+- Il bind degli aggregati supporta anche gli ID dispositivo di Home Assistant, risolvendoli tramite device registry verso i relativi `config_entry_id`.
+- Il log `/api/irrigazione/state` mostra il bind usato per diagnosticare subito opzioni puntate al dispositivo sbagliato.
+
 ## 10.5.17
 - Gli aggregati e-Dry (`zones_info`, `programs_info`, `meteo_info` e switch programmi) vengono risolti prima tramite `bind_config_entry_id`, cosi l'add-on funziona anche con entity_id prefissati da Home Assistant.
 - Aggiunta diagnostica nel log `/api/irrigazione/state` e nella pagina entita per indicare se gli aggregati arrivano da bind, configurazione esplicita o risultano mancanti.

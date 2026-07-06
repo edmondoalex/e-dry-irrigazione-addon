@@ -16,7 +16,7 @@ from flask import Flask, request, jsonify, send_file
 import requests
 
 app = Flask(__name__)
-VERSION = "10.5.17"
+VERSION = "10.5.18"
 HERE = Path(__file__).resolve().parent
 INDEX_HTML = HERE / "entities_index.html"
 
@@ -132,19 +132,50 @@ def ha_entity_registry_list():
         return []
 
 
-def _registry_entry_matches_bind(entry, bind):
+def ha_device_registry_list():
+    """Return Home Assistant device registry list (best-effort)."""
+    ok, _ = _ha_require_token()
+    if not ok:
+        return []
+    try:
+        r = requests.get(f"{HA_BASE}/api/config/device_registry/list", headers=HEADERS, timeout=30)
+        if r.status_code >= 400:
+            return []
+        return r.json() or []
+    except Exception:
+        return []
+
+
+def _bind_candidate_ids(bind):
     if not bind:
-        return False
+        return set()
     bind_s = str(bind)
+    ids = {bind_s}
+    try:
+        for dev in ha_device_registry_list() or []:
+            if str(dev.get('id') or '') != bind_s:
+                continue
+            for ce in dev.get('config_entries') or []:
+                if ce is not None:
+                    ids.add(str(ce))
+            break
+    except Exception:
+        pass
+    return ids
+
+
+def _registry_entry_matches_bind(entry, bind_ids):
+    if not bind_ids:
+        return False
     try:
         ce = entry.get('config_entry_id')
         if isinstance(ce, (list, tuple)):
-            if bind_s in [str(x) for x in ce]:
+            if any(str(x) in bind_ids for x in ce):
                 return True
-        elif ce is not None and str(ce) == bind_s:
+        elif ce is not None and str(ce) in bind_ids:
             return True
         device_id = entry.get('device_id')
-        if device_id is not None and str(device_id) == bind_s:
+        if device_id is not None and str(device_id) in bind_ids:
             return True
     except Exception:
         return False
@@ -154,7 +185,9 @@ def _registry_entry_matches_bind(entry, bind):
 def _find_bound_entity_id(registry, bind, unique_suffix, domain=None):
     if not bind or not unique_suffix:
         return None
+    bind_ids = _bind_candidate_ids(bind)
     matches = []
+    suffix_matches = []
     for item in registry or []:
         try:
             eid = item.get('entity_id') or ''
@@ -163,16 +196,23 @@ def _find_bound_entity_id(registry, bind, unique_suffix, domain=None):
                 continue
             if domain and not eid.startswith(f"{domain}."):
                 continue
-            if not _registry_entry_matches_bind(item, bind):
-                continue
             disabled = item.get('disabled_by') is not None
-            matches.append((disabled, eid))
+            if _registry_entry_matches_bind(item, bind_ids):
+                matches.append((disabled, eid))
+            else:
+                suffix_matches.append((disabled, eid))
         except Exception:
             continue
     for _disabled, eid in sorted(matches, key=lambda x: x[0]):
         if ha_get_state(eid):
             return eid
-    return matches[0][1] if matches else None
+    if matches:
+        return matches[0][1]
+    if len(suffix_matches) == 1:
+        eid = suffix_matches[0][1]
+        if ha_get_state(eid):
+            return eid
+    return None
 
 
 @app.route('/')
