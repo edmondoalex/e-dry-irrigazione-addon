@@ -1,3 +1,7 @@
+## 10.5.17
+- Gli aggregati e-Dry (`zones_info`, `programs_info`, `meteo_info` e switch programmi) vengono risolti prima tramite `bind_config_entry_id`, cosi l'add-on funziona anche con entity_id prefissati da Home Assistant.
+- Aggiunta diagnostica nel log `/api/irrigazione/state` e nella pagina entita per indicare se gli aggregati arrivano da bind, configurazione esplicita o risultano mancanti.
+
 ## 10.5.16
 - Mostrati nella dashboard e-Dry altri dati stazione reale e-SunMind: stazione, raffica vento, pioggia oggi, radiazione, UV, VPD ed ET0.
 - Esteso `/api/device_weather` con i principali parametri meteo professionali quando disponibili.

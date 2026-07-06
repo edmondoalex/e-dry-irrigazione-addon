@@ -19,7 +19,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.5.16"
+VERSION = "10.5.17"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -273,6 +273,69 @@ def resolve_entities_by_config_entry_registry(config_entry):
         except Exception:
             continue
     return out
+
+
+def _registry_entry_matches_bind(entry, bind):
+    if not bind:
+        return False
+    bind_s = str(bind)
+    try:
+        ce = entry.get('config_entry_id')
+        if isinstance(ce, (list, tuple)):
+            if bind_s in [str(x) for x in ce]:
+                return True
+        elif ce is not None and str(ce) == bind_s:
+            return True
+        device_id = entry.get('device_id')
+        if device_id is not None and str(device_id) == bind_s:
+            return True
+    except Exception:
+        return False
+    return False
+
+
+def _find_bound_entity_id(bind, unique_suffix, domain=None):
+    """Resolve an entity_id from bind_config_entry_id/device_id and unique_id suffix."""
+    if not bind or not unique_suffix:
+        return None
+    try:
+        reg = ha_get_entity_registry_list() or []
+    except Exception:
+        return None
+
+    matches = []
+    for item in reg:
+        try:
+            eid = item.get('entity_id') or ''
+            uid = str(item.get('unique_id') or '')
+            if not eid or not uid.endswith(unique_suffix):
+                continue
+            if domain and not eid.startswith(f"{domain}."):
+                continue
+            if not _registry_entry_matches_bind(item, bind):
+                continue
+            disabled = item.get('disabled_by') is not None
+            matches.append((disabled, eid))
+        except Exception:
+            continue
+
+    for _disabled, eid in sorted(matches, key=lambda x: x[0]):
+        if ha_try_get_state(eid):
+            return eid
+    return matches[0][1] if matches else None
+
+
+def resolve_bound_entity_state(configured_entity, bind, unique_suffix, domain='sensor'):
+    """Read entity resolved through bind first, then the configured/default entity."""
+    bound_entity = _find_bound_entity_id(bind, unique_suffix, domain)
+    if bound_entity:
+        st = ha_try_get_state(bound_entity)
+        if st:
+            return st, bound_entity, 'bind'
+    st = ha_try_get_state(configured_entity) if configured_entity else None
+    if st:
+        return st, configured_entity, 'configured'
+    return None, configured_entity, 'missing'
 
 
 def ha_call_service(domain, service, payload):
@@ -1140,6 +1203,16 @@ def api_irrigazione_state():
     programs_info_entity = opts.get('programs_info_entity') or 'sensor.e_dry_programs_info'
     meteo_info_entity = opts.get('meteo_info_entity') or 'sensor.e_dry_meteo_info'
     programs_enabled_entity = opts.get('programs_enabled_entity') or 'switch.programmi_abilitati'
+    z_info, zones_info_entity, zones_info_source = resolve_bound_entity_state(
+        zones_info_entity, bind, '_zones_info', 'sensor'
+    )
+    p_info, programs_info_entity, programs_info_source = resolve_bound_entity_state(
+        programs_info_entity, bind, '_programs_info', 'sensor'
+    )
+    meteo, meteo_info_entity, meteo_info_source = resolve_bound_entity_state(
+        meteo_info_entity, bind, '_weather_info', 'sensor'
+    )
+    programs_enabled_source = 'missing'
 
     entities = None
 
@@ -1187,7 +1260,6 @@ def api_irrigazione_state():
         return n in h
 
     # Strict: resolve zones info from configured entity_id, otherwise from bind entities (no global discovery)
-    z_info = ha_try_get_state(zones_info_entity)
     z_list = []
     if z_info:
         z_list = ((z_info.get('attributes') or {}).get('zones') or [])
@@ -1440,7 +1512,9 @@ def api_irrigazione_state():
     # Programs enabled is a real HA switch (bidirectional)
     programs_enabled = None
     try:
-        sw = ha_try_get_state(programs_enabled_entity)
+        sw, programs_enabled_entity, programs_enabled_source = resolve_bound_entity_state(
+            programs_enabled_entity, bind, '_programs_enabled_switch', 'switch'
+        )
         if sw:
             programs_enabled = 'on' if str(sw.get('state')).lower() in ('on', 'true', '1') else 'off'
     except Exception:
@@ -1459,7 +1533,6 @@ def api_irrigazione_state():
         except Exception:
             legacy_prog_map = {}
 
-    p_info = ha_try_get_state(programs_info_entity)
     if p_info:
         p_list = ((p_info.get('attributes') or {}).get('programs') or [])
         for p in p_list:
@@ -1502,7 +1575,6 @@ def api_irrigazione_state():
 
     # Weather from aggregated meteo sensor (fallback to legacy sensors)
     weather = []
-    meteo = ha_try_get_state(meteo_info_entity)
     if meteo:
         a = meteo.get('attributes') or {}
         status = a.get('status') or meteo.get('state')
@@ -1582,7 +1654,13 @@ def api_irrigazione_state():
         now_log = time.time()
         if now_log - LAST_STATE_LOG_TS >= 30:
             LAST_STATE_LOG_TS = now_log
-            print(f"[state] zones={len(zones) if zones else 0} cache={len(cache_zones) if cache_zones else 0} use_cache={use_cache}", flush=True)
+            print(
+                f"[state] zones={len(zones) if zones else 0} "
+                f"z_info={zones_info_entity}:{zones_info_source} "
+                f"z_list={len(z_list) if z_list else 0} "
+                f"cache={len(cache_zones) if cache_zones else 0} use_cache={use_cache}",
+                flush=True,
+            )
     except Exception:
         pass
 
@@ -1619,8 +1697,15 @@ def api_irrigazione_state():
         'weather': weather,
         'active_zone': active_zone,
         'programs_enabled_entity': programs_enabled_entity,
+        'programs_enabled_source': programs_enabled_source,
         'programs_enabled': programs_enabled,
         'programs': programs,
+        'zones_info_entity': zones_info_entity,
+        'zones_info_source': zones_info_source,
+        'programs_info_entity': programs_info_entity,
+        'programs_info_source': programs_info_source,
+        'meteo_info_entity': meteo_info_entity,
+        'meteo_info_source': meteo_info_source,
         'manual_adjustment_entity': manual_adjustment_entity,
         'manual_adjustment': manual_adjustment,
         'manual_adjustment_attrs': manual_adjustment_attrs,
@@ -1649,8 +1734,9 @@ def meteo_manual_adjustment_set():
 
 def _weather_settings_from_meteo_sensor():
     opts = read_options()
+    bind = opts.get('bind_config_entry_id')
     entity_id = opts.get('meteo_info_entity') or 'sensor.e_dry_meteo_info'
-    st = ha_try_get_state(entity_id)
+    st, entity_id, _source = resolve_bound_entity_state(entity_id, bind, '_weather_info', 'sensor')
     attrs = (st or {}).get('attributes') or {}
     def val(key, default=None):
         value = attrs.get(key)
@@ -1679,8 +1765,9 @@ def _weather_settings_from_meteo_sensor():
 
 def _zone_profiles_from_zones_sensor():
     opts = read_options()
+    bind = opts.get('bind_config_entry_id')
     entity_id = opts.get('zones_info_entity') or 'sensor.e_dry_zones_info'
-    st = ha_try_get_state(entity_id)
+    st, entity_id, _source = resolve_bound_entity_state(entity_id, bind, '_zones_info', 'sensor')
     attrs = (st or {}).get('attributes') or {}
     profiles = attrs.get('zone_profiles') or []
     zones = attrs.get('zones') or []
@@ -1923,11 +2010,12 @@ def stop_all():
     QUICK_SEQUENCE_CANCEL.set()
     QUICK_SEQUENCE_SKIP.set()
     opts = read_options()
+    bind = opts.get('bind_config_entry_id')
     zones_info_entity = opts.get('zones_info_entity') or 'sensor.e_dry_zones_info'
     errors = []
 
     # Prefer stopping via integration services using the aggregated zones info
-    z_info = ha_try_get_state(zones_info_entity)
+    z_info, zones_info_entity, _source = resolve_bound_entity_state(zones_info_entity, bind, '_zones_info', 'sensor')
     if z_info:
         z_list = ((z_info.get('attributes') or {}).get('zones') or [])
         for zi in z_list:

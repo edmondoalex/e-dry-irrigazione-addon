@@ -46,3 +46,4 @@ Ogni volta che fai modifiche a questo addon:
 - 2026-06-05: bump versione prototipo a `10.5.14`; lista zone `Irriga ora` allargata su griglia full width e altezza ridotta.
 - 2026-06-05: bump versione prototipo a `10.5.15`; campo `Minuti` spostato nella riga strumenti accanto a `Tutte`/`Nessuna`.
 - 2026-06-05: bump versione prototipo a `10.5.16`; dashboard mostra piu dati stazione reale e-SunMind e `/api/device_weather` espone nuovi parametri.
+- 2026-07-06: bump versione a `10.5.17`; `web/server.py` e `web/entities_server.py` risolvono gli aggregati e-Dry tramite `bind_config_entry_id`/registry prima dei nomi fissi, con diagnostica sorgente nel log e JSON.

@@ -16,7 +16,7 @@ from flask import Flask, request, jsonify, send_file
 import requests
 
 app = Flask(__name__)
-VERSION = "10.5.16"
+VERSION = "10.5.17"
 HERE = Path(__file__).resolve().parent
 INDEX_HTML = HERE / "entities_index.html"
 
@@ -130,6 +130,49 @@ def ha_entity_registry_list():
         return r.json() or []
     except Exception:
         return []
+
+
+def _registry_entry_matches_bind(entry, bind):
+    if not bind:
+        return False
+    bind_s = str(bind)
+    try:
+        ce = entry.get('config_entry_id')
+        if isinstance(ce, (list, tuple)):
+            if bind_s in [str(x) for x in ce]:
+                return True
+        elif ce is not None and str(ce) == bind_s:
+            return True
+        device_id = entry.get('device_id')
+        if device_id is not None and str(device_id) == bind_s:
+            return True
+    except Exception:
+        return False
+    return False
+
+
+def _find_bound_entity_id(registry, bind, unique_suffix, domain=None):
+    if not bind or not unique_suffix:
+        return None
+    matches = []
+    for item in registry or []:
+        try:
+            eid = item.get('entity_id') or ''
+            uid = str(item.get('unique_id') or '')
+            if not eid or not uid.endswith(unique_suffix):
+                continue
+            if domain and not eid.startswith(f"{domain}."):
+                continue
+            if not _registry_entry_matches_bind(item, bind):
+                continue
+            disabled = item.get('disabled_by') is not None
+            matches.append((disabled, eid))
+        except Exception:
+            continue
+    for _disabled, eid in sorted(matches, key=lambda x: x[0]):
+        if ha_get_state(eid):
+            return eid
+    return matches[0][1] if matches else None
 
 
 @app.route('/')
@@ -269,6 +312,19 @@ def api_entities_grouped():
 
     # Entity registry is used to resolve entities that are not bound to the config entry
     registry = ha_entity_registry_list()
+
+    def _resolve_aggregate_entity(configured_entity, unique_suffix, domain):
+        bound = _find_bound_entity_id(registry, config_entry, unique_suffix, domain)
+        if bound:
+            return bound, 'bind'
+        if ha_get_state(configured_entity):
+            return configured_entity, 'configured'
+        return configured_entity, 'missing'
+
+    zones_info_entity, zones_info_source = _resolve_aggregate_entity(zones_info_entity, '_zones_info', 'sensor')
+    programs_info_entity, programs_info_source = _resolve_aggregate_entity(programs_info_entity, '_programs_info', 'sensor')
+    meteo_info_entity, meteo_info_source = _resolve_aggregate_entity(meteo_info_entity, '_weather_info', 'sensor')
+    programs_enabled_entity, programs_enabled_source = _resolve_aggregate_entity(programs_enabled_entity, '_programs_enabled_switch', 'switch')
 
     def _as_ent(entity_id: str):
         """Return a normalized entity row for UI (entity_id, state, name, attributes)."""
@@ -540,9 +596,13 @@ def api_entities_grouped():
             'meta': {
                 'config_entry': config_entry,
                 'zones_info_entity': zones_info_entity,
+                'zones_info_source': zones_info_source,
                 'programs_info_entity': programs_info_entity,
+                'programs_info_source': programs_info_source,
                 'meteo_info_entity': meteo_info_entity,
+                'meteo_info_source': meteo_info_source,
                 'programs_enabled_entity': programs_enabled_entity,
+                'programs_enabled_source': programs_enabled_source,
                 'zones_def_count': len(zones_def or []),
                 'programs_def_count': len(p_list or []),
             },
