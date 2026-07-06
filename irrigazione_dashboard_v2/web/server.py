@@ -19,7 +19,7 @@ import traceback
 import threading
 
 app = Flask(__name__)
-VERSION = "10.5.18"
+VERSION = "10.5.19"
 print(f"[e-Dry Irrigazione] Starting dashboard v{VERSION}")
 
 START_TS = time.time()
@@ -363,6 +363,57 @@ def _find_bound_entity_id(bind, unique_suffix, domain=None):
     return None
 
 
+def _find_aggregate_state_fallback(unique_suffix, domain='sensor'):
+    """Find known e_dry aggregate sensors from HA states when registry binding is unavailable."""
+    try:
+        states = ha_get_states_all() or []
+    except Exception:
+        return None, None
+
+    def _norm(v):
+        return str(v or '').strip().lower().replace('-', '_').replace(' ', '_')
+
+    suffix_key = str(unique_suffix or '').strip('_').lower()
+    matches = []
+    for st in states:
+        try:
+            eid = st.get('entity_id') or ''
+            if not eid or (domain and not eid.startswith(f"{domain}.")):
+                continue
+            attrs = st.get('attributes') or {}
+            friendly = _norm(attrs.get('friendly_name') or attrs.get('name') or eid)
+            score = 0
+            if suffix_key and suffix_key in _norm(eid):
+                score += 2
+            if suffix_key and suffix_key in friendly:
+                score += 3
+            if unique_suffix == '_zones_info' and isinstance(attrs.get('zones'), list):
+                score += 5
+            elif unique_suffix == '_programs_info' and isinstance(attrs.get('programs'), list):
+                score += 5
+            elif unique_suffix == '_weather_info' and (
+                'weather_mode' in attrs or 'smart_factor' in attrs or 'manual_adjustment_percent' in attrs
+            ):
+                score += 5
+            elif unique_suffix == '_programs_enabled_switch' and domain == 'switch':
+                if 'programmi' in friendly and ('abilitati' in friendly or 'enabled' in friendly):
+                    score += 5
+            if score > 0:
+                matches.append((score, eid, st))
+        except Exception:
+            continue
+
+    if not matches:
+        return None, None
+    matches.sort(key=lambda x: (-x[0], x[1]))
+    best_score = matches[0][0]
+    best = [m for m in matches if m[0] == best_score]
+    if len(best) == 1 or best_score >= 5:
+        _score, eid, st = best[0]
+        return st, eid
+    return None, None
+
+
 def resolve_bound_entity_state(configured_entity, bind, unique_suffix, domain='sensor'):
     """Read entity resolved through bind first, then the configured/default entity."""
     bound_entity = _find_bound_entity_id(bind, unique_suffix, domain)
@@ -373,6 +424,9 @@ def resolve_bound_entity_state(configured_entity, bind, unique_suffix, domain='s
     st = ha_try_get_state(configured_entity) if configured_entity else None
     if st:
         return st, configured_entity, 'configured'
+    st, fallback_entity = _find_aggregate_state_fallback(unique_suffix, domain)
+    if st:
+        return st, fallback_entity, 'states'
     return None, configured_entity, 'missing'
 
 

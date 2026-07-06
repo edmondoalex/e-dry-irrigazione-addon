@@ -1,3 +1,7 @@
+## 10.5.19
+- Aggiunto fallback sugli stati Home Assistant per risolvere i sensori aggregati e-Dry quando registry/bind non espongono `unique_id` o `config_entry_id` nel formato atteso.
+- La sorgente diagnostica puo ora indicare `states` oltre a `bind`, `configured` e `missing`.
+
 ## 10.5.18
 - Il bind degli aggregati supporta anche gli ID dispositivo di Home Assistant, risolvendoli tramite device registry verso i relativi `config_entry_id`.
 - Il log `/api/irrigazione/state` mostra il bind usato per diagnosticare subito opzioni puntate al dispositivo sbagliato.
