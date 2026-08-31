@@ -40,3 +40,4 @@
 ## 2026-07-06
 
 - Bump add-on a `10.5.21`: aggiunta didascalia chiara sopra lo slider durata nelle card zona e aggiornati README/changelog/runtime version.
+- 2026-08-31: bump add-on a `10.5.22` per il rilascio coordinato con il custom component e-Dry `10.1.4` thread-safe.

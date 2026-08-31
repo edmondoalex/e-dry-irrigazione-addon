@@ -1,3 +1,7 @@
+## 10.5.22
+
+- Allineato il rilascio al custom component e-Dry `10.1.4`, che corregge gli aggiornamenti di stato fuori dall'event loop su Home Assistant 2026.6.4/Python 3.14.
+
 ## 10.5.21
 - Aggiunta una didascalia esplicita `Durata: sposta lo slider` sopra la barra delle card zona per rendere chiaro dove modificare i minuti.
 - Aggiornato il tooltip della barra durata nelle card zona.
